@@ -7,8 +7,8 @@ USE_DAISYSP_LGPL = 1
 CPP_SOURCES = Main.cpp GateKeeper.cpp SuperSaw.cpp Reverb.cpp VCAUtility.cpp
 
 # Library Locations
-LIBDAISY_DIR = ../../libDaisy/
-DAISYSP_DIR = ../../DaisySP/
+LIBDAISY_DIR = ./libDaisy/
+DAISYSP_DIR = ./DaisySP/
 
 
 # Core location, and generic Makefile.
