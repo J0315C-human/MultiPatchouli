@@ -1,0 +1,16 @@
+# Project Name
+TARGET = MultiPatchouli
+
+USE_DAISYSP_LGPL = 1
+
+# Sources
+CPP_SOURCES = Main.cpp GateKeeper.cpp SuperSaw.cpp Reverb.cpp VCAUtility.cpp
+
+# Library Locations
+LIBDAISY_DIR = ../../libDaisy/
+DAISYSP_DIR = ../../DaisySP/
+
+
+# Core location, and generic Makefile.
+SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
+include $(SYSTEM_FILES_DIR)/Makefile
