@@ -17,10 +17,6 @@ void SuperSaw::Init()
     osc_f.Init(patch.AudioSampleRate());
     osc_g.Init(patch.AudioSampleRate());
     osc_h.Init(patch.AudioSampleRate());
-    osc_i.Init(patch.AudioSampleRate());
-    osc_j.Init(patch.AudioSampleRate());
-    osc_k.Init(patch.AudioSampleRate());
-    osc_l.Init(patch.AudioSampleRate());
 
     waveForm = toggle.Pressed() ? Oscillator::WAVE_POLYBLEP_SAW
                                 : Oscillator::WAVE_POLYBLEP_TRI;
@@ -33,10 +29,6 @@ void SuperSaw::Init()
     osc_f.SetWaveform(waveForm);
     osc_g.SetWaveform(waveForm);
     osc_h.SetWaveform(waveForm);
-    osc_i.SetWaveform(waveForm);
-    osc_j.SetWaveform(waveForm);
-    osc_k.SetWaveform(waveForm);
-    osc_l.SetWaveform(waveForm);
 }
 
 void SuperSaw::AudioCallback(AudioHandle::InputBuffer  in,
@@ -62,10 +54,6 @@ void SuperSaw::AudioCallback(AudioHandle::InputBuffer  in,
         osc_f.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
         osc_g.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
         osc_h.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
-        osc_i.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
-        osc_j.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
-        osc_k.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
-        osc_l.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
     }
     else if(!toggle.Pressed() && waveForm != Oscillator::WAVE_POLYBLEP_TRI)
     {
@@ -79,10 +67,6 @@ void SuperSaw::AudioCallback(AudioHandle::InputBuffer  in,
         osc_f.SetWaveform(Oscillator::WAVE_POLYBLEP_TRI);
         osc_g.SetWaveform(Oscillator::WAVE_POLYBLEP_TRI);
         osc_h.SetWaveform(Oscillator::WAVE_POLYBLEP_TRI);
-        osc_i.SetWaveform(Oscillator::WAVE_POLYBLEP_TRI);
-        osc_j.SetWaveform(Oscillator::WAVE_POLYBLEP_TRI);
-        osc_k.SetWaveform(Oscillator::WAVE_POLYBLEP_TRI);
-        osc_l.SetWaveform(Oscillator::WAVE_POLYBLEP_TRI);
     }
 
     float coarse_tune = fmap(knob_coarse, 24, 72);
@@ -93,11 +77,11 @@ void SuperSaw::AudioCallback(AudioHandle::InputBuffer  in,
     float midi_nn  = fclamp(coarse_tune + voct, 0.f, 127.f);
     float mid_freq = mtof(midi_nn);
 
-    /** Calculate a detune amount */
-    int n_extra_voices = fmap(knob_extraVoices, 1.f, 6.9f);
+    // this just chops off the non-int part of the number
+    int n_extra_voices = fmap(knob_extraVoices, 1.f, 4.9f);
     n_extra_voices *= 2; // it needs to be an even number
     n_extra_voices = DSY_CLAMP(n_extra_voices, 2, 12);
-    
+
     // there's probably real math that could be here
     float loudnessFudge
         = 1.f + (n_extra_voices * 0.18f) + ((1 - knob_scaleFactor) * 0.25f);
@@ -107,16 +91,9 @@ void SuperSaw::AudioCallback(AudioHandle::InputBuffer  in,
     /** Set all oscillators' frequencies */
     osc_main.SetFreq(mid_freq);
 
+    // Danger: intentional fall-thru cases ahead
     switch(n_extra_voices)
     {
-        case 12:
-            offset += increment;
-            osc_l.SetFreq(mid_freq + offset);
-            osc_k.SetFreq(mid_freq - offset);
-        case 10:
-            offset += increment;
-            osc_j.SetFreq(mid_freq + offset);
-            osc_i.SetFreq(mid_freq - offset);
         case 8:
             offset += increment;
             osc_h.SetFreq(mid_freq + offset);
@@ -147,14 +124,6 @@ void SuperSaw::AudioCallback(AudioHandle::InputBuffer  in,
 
         switch(n_extra_voices)
         {
-            case 12:
-                _f *= _scaleFactor;
-                totalScale += 2 * _f;
-                sig += _f * (osc_l.Process() + osc_k.Process());
-            case 10:
-                _f *= _scaleFactor;
-                totalScale += 2 * _f;
-                sig += _f * (osc_j.Process() + osc_i.Process());
             case 8:
                 _f *= _scaleFactor;
                 totalScale += 2 * _f;

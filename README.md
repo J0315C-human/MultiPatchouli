@@ -47,12 +47,12 @@ Logic to choose whether or not to "let" triggers through. Also provides a nice w
 
 ### SuperSaw
 
-This is just the TripleSaw example from the Daisy repo, ported over to fit into my code. I also added CV controls for number of extra voices, which goes from 2 up to 12, and "voice scaling" which makes the more detuned voices slightly quieter relative to the central "main" frequency. Also added a triangle option.
+This is just the TripleSaw example from the Daisy repo, ported over to fit into my code. I also added CV controls for number of extra voices, which goes from 2 up to 8, and "voice scaling" which makes the more detuned voices slightly quieter relative to the central "main" frequency. Also added a triangle option.
 
 **Inputs:**
 - `CV_1`: Tuning
 - `CV_2`: Detune amt (goes up to 10%!)
-- `CV_3`: Num Voices
+- `CV_3`: Num extra voices (rounds to 2, 4, 6, or 8)
 - `CV_4`: amt to scale down detuned voices
 - `CV_5`: v/oct input
 - `B8`: Switches between Saw and Triangle voices
@@ -68,7 +68,6 @@ This is just the TripleSaw example from the Daisy repo, ported over to fit into 
 - `CV_6` – `CV_8`
 
 **Ideas:**
-- Maybe cut down to max 8 extra voices
 - Add MiniGateKeeper
 - Have button switch waveforms
 
@@ -126,3 +125,7 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 
 **Todo:**
 - Add MiniGateKeeper
+
+## Various Notes
+
+- This repo expects libDaisy and DaisySP to be in the root directory.
