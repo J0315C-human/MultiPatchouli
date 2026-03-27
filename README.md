@@ -10,6 +10,7 @@ Press Button B7 to cycle between the modes. The LED will blink a number of times
 2. "SuperSaw" mode
 3. Reverb mode
 4. VCA Utility
+5. Envelope Follower
 
 > **Todo:** do selection by holding the button and moving a CV knob (or maybe two in sequence to have 12 or 16 presets?)
 
@@ -125,6 +126,31 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 
 **Todo:**
 - Add MiniGateKeeper
+
+### Envelope FOllower
+
+This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipolar CV VCA.
+
+**Inputs:**
+- `audio L`: audio input for follower
+- `audio R`: audio input to be ducked
+- `CV_1`: MS attack (1 to 500ms)
+- `CV_2`: MS release (1 to 2000ms)
+- `CV_3`: audio R ducking amount
+- `CV_4`: audio R makeup gain
+
+**Outputs:**
+- `audio L`: passthru audio of L
+- `audio R`: audio R with ducking applied using the envelope of audio L
+- `CV_OUT_1`: follower envelope
+
+**Unused:**
+- Switch `B8`
+- `CV_5` - `CV_8`
+- gate ins/outs
+
+**Todo:**
+- add Gate utilities (thresholds?)
 
 ## Various Notes
 

@@ -4,7 +4,12 @@ TARGET = MultiPatchouli
 USE_DAISYSP_LGPL = 1
 
 # Sources
-CPP_SOURCES = Main.cpp GateKeeper.cpp SuperSaw.cpp Reverb.cpp VCAUtility.cpp
+CPP_SOURCES = Main.cpp \
+GateKeeper.cpp \
+SuperSaw.cpp \
+Reverb.cpp \
+VCAUtility.cpp \
+EnvFollower.cpp
 
 # Library Locations
 LIBDAISY_DIR = ./libDaisy/

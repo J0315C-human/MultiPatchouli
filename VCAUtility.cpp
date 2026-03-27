@@ -1,5 +1,4 @@
 #include "VCAUtility.h"
-#include "daisysp-lgpl.h"
 
 extern DaisyPatchSM patch;
 extern uint16_t     CV_OUT_LOWPRIORITY;

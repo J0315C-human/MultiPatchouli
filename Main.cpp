@@ -5,6 +5,7 @@
 #include "Blinker.h"
 #include "Reverb.h"
 #include "VCAUtility.h"
+#include "EnvFollower.h"
 
 using namespace daisy;
 using namespace patch_sm;
@@ -14,23 +15,25 @@ DaisyPatchSM patch;
 Switch       toggle;
 Switch       button;
 Blinker      blinker;
-VCAUtility   vcaUtility;
 
-constexpr int NUM_MODES = 4;
+
+constexpr int NUM_MODES = 5;
 
 // MODE INDEX:
 // 0: GateKeeper
+GateKeeper gateKeeper;
 // 1: SuperSaw
+SuperSaw superSaw;
 // 2: Reverb
+Reverb reverb;
 // 3: VCAUtility
+VCAUtility vcaUtility;
+// 4: EnvFollower
+EnvFollower envFollower;
 
 int      currentMode;
 uint16_t LED_OUT_LOWPRIORITY;
 uint16_t CV_OUT_LOWPRIORITY;
-
-GateKeeper gateKeeper;
-SuperSaw   superSaw;
-Reverb     reverb;
 
 void MainAudioCallback(AudioHandle::InputBuffer  in,
                        AudioHandle::OutputBuffer out,
@@ -58,6 +61,11 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
         case 3:
         {
             vcaUtility.AudioCallback(in, out, size);
+            break;
+        }
+        case 4:
+        {
+            envFollower.AudioCallback(in, out, size);
             break;
         }
     }
@@ -99,6 +107,11 @@ void MainDacCallback(uint16_t **output, size_t size)
             vcaUtility.DacCallback(output, size);
             break;
         }
+        case 4:
+        {
+            envFollower.DacCallback(output, size);
+            break;
+        }
     }
 
     // set LED and cv out value, giving "Blinker" higher priority
@@ -122,9 +135,12 @@ int main(void)
 
     currentMode = 0;
 
+    // Init the Module mode classes
     gateKeeper.Init();
     superSaw.Init();
     reverb.Init();
+    vcaUtility.Init();
+    envFollower.Init();
 
     patch.StartAudio(MainAudioCallback);
     patch.StartDac(MainDacCallback);
