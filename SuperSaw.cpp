@@ -74,7 +74,7 @@ void SuperSaw::AudioCallback(AudioHandle::InputBuffer  in,
     float voct        = fmap(cv_voct, 0, 60);
 
     /** Convert from MIDI note number to frequency */
-    float midi_nn  = fclamp(coarse_tune + voct, 0.f, 127.f);
+    float midi_nn  = fclamp((coarse_tune + voct) * CALIBRATE_VOCT, 0.f, 127.f);
     float mid_freq = mtof(midi_nn);
 
     // this just chops off the non-int part of the number
