@@ -1,6 +1,6 @@
 #pragma once
 #include "IModuleMode.h"
-
+#include "EnvFollower.h"
 class Reverb : public IModuleMode
 {
   public:
@@ -14,5 +14,10 @@ class Reverb : public IModuleMode
                        size_t                    size) override;
 
   private:
-    ReverbSc reverb;
+    static constexpr float ENV_ATT   = 60.f;
+    static constexpr float ENV_REL   = 350.f;
+    static constexpr float ENV_SCALE = 2.f;
+
+    ReverbSc     reverb;
+    _EnvFollower ef;
 };

@@ -2,6 +2,7 @@
 #include "daisysp-lgpl.h"
 
 extern DaisyPatchSM patch;
+extern uint16_t     CV_OUT_LOWPRIORITY;
 
 Reverb::Reverb() {}
 Reverb::~Reverb() {}
@@ -9,6 +10,8 @@ Reverb::~Reverb() {}
 void Reverb::Init()
 {
     reverb.Init(patch.AudioSampleRate());
+    ef.Init();
+    ef.SetAttackRelease(ENV_ATT, ENV_REL);
 }
 
 void Reverb::AudioCallback(AudioHandle::InputBuffer  in,
@@ -22,7 +25,7 @@ void Reverb::AudioCallback(AudioHandle::InputBuffer  in,
     float damp_knob = patch.GetAdcValue(CV_2);
     float damp      = fmap(damp_knob, 1000.f, 19000.f, Mapping::LOG);
 
-    float dry_level = patch.GetAdcValue(CV_3);
+    float dry_level  = patch.GetAdcValue(CV_3);
     float send_level = patch.GetAdcValue(CV_4);
 
     reverb.SetFeedback(time);
@@ -36,7 +39,12 @@ void Reverb::AudioCallback(AudioHandle::InputBuffer  in,
         float sendr = IN_R[i] * send_level;
         float wetl, wetr;
         reverb.Process(sendl, sendr, &wetl, &wetr);
+        ef.Process(wetl);
         OUT_L[i] = dryl + wetl;
         OUT_R[i] = dryr + wetr;
     }
+
+    // set CV to follow envelope of full-wet reverb (of just L channel)
+    CV_OUT_LOWPRIORITY
+        = VoltageToCvValue(cheapTanh(ef.Value() * ENV_SCALE) * 5.f);
 }

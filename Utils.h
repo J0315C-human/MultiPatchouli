@@ -8,9 +8,6 @@ using namespace daisysp;
 using namespace patch_sm;
 
 extern DaisyPatchSM patch;
-// extern Switch       toggle;
-// extern uint16_t     LED_OUT_LOWPRIORITY;
-// extern uint16_t     CV_OUT_LOWPRIORITY;
 
 inline float GetCombinedKnobCv(int knob, int cv)
 {
@@ -29,6 +26,7 @@ inline uint16_t VoltageToCvValue(float input)
     return (uint16_t)pre;
 }
 
+/* For smooth limiting to (-1, 1)*/
 inline float cheapTanh(float x)
 {
     x = DSY_CLAMP(x, -3.f, 3.f);

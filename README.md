@@ -84,6 +84,7 @@ This is a basic reverb.
 - `CV_3`: Dry Level
 - `CV_4`: Send Level
 - `audio`: stereo audio input
+- `CV_OUT_1`: envelope follower of wet effect signal
 
 **Outputs:**
 - `audio`: stereo audio output
@@ -92,12 +93,10 @@ This is a basic reverb.
 - `CV_5` – `CV_8`
 - Switch `B8`
 - gate ins/outs
-- `CV_OUT_1`
 
 **Todo:**
 - Add CV control for time/damping/dry/send
 - Add MiniGateKeeper
-- Make `CV_OUT_1` an envelope that follows the Wet signal level
 
 ---
 
@@ -127,16 +126,16 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 **Todo:**
 - Add MiniGateKeeper
 
-### Envelope FOllower
+### Envelope Follower
 
 This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipolar CV VCA.
 
-**Inputs:**
+**Inputs:**a
 - `audio L`: audio input for follower
 - `audio R`: audio input to be ducked
 - `CV_1`: MS attack (1 to 500ms)
 - `CV_2`: MS release (1 to 2000ms)
-- `CV_3`: audio R ducking amount
+- `CV_3`: envelope scaling (also affects ducking)
 - `CV_4`: audio R makeup gain
 
 **Outputs:**
