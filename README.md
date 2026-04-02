@@ -13,7 +13,7 @@ Press Button B7 to cycle between the modes. The LED will blink a number of times
 5. Envelope Follower
 
 > **Todo:** do selection by holding the button and moving a CV knob (or maybe two in sequence to have 12 or 16 presets?)
-
+> **Todo:** better way to show current mode than blinking? Install a second LED?
 ---
 
 ## Module Modes
@@ -42,7 +42,7 @@ Logic to choose whether or not to "let" triggers through. Also provides a nice w
 
 **Todo:**
 - Make audio out 1 duck audio based on the trigger and an envelope
-- Apply same envelope to audio out 2
+- Apply same envelope to audio out 2, but only as a positive multiplier
 
 ---
 
@@ -62,15 +62,18 @@ This is just the TripleSaw example from the Daisy repo, ported over to fit into 
 - `audio_1`: left channel out
 - `audio_2`: right channel out
 
+**Added layers:**
+- Mini GateKeeper (see below)
+
 **Unused:**
 - Audio ins
 - gate ins/outs
 - `CV_OUT_1`
 - `CV_6` – `CV_8`
 
-**Ideas:**
-- Add MiniGateKeeper
-- Have button switch waveforms
+**Todo:**
+- Add CV in for Detune amt
+- Have button switch waveforms instead of switch
 
 ---
 
@@ -89,6 +92,9 @@ This is a basic reverb.
 **Outputs:**
 - `audio`: stereo audio output
 
+**Added layers:**
+- Mini GateKeeper (see below)
+
 **Unused:**
 - `CV_5` – `CV_8`
 - Switch `B8`
@@ -96,7 +102,6 @@ This is a basic reverb.
 
 **Todo:**
 - Add CV control for time/damping/dry/send
-- Add MiniGateKeeper
 
 ---
 
@@ -119,12 +124,13 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 - `audio_right`: audio 2 processed
 - `CV_OUT_1`: CV input processed (unipolar)
 
+**Added layers:**
+- Mini GateKeeper (see below)
+
 **Unused:**
 - Switch `B8`
-- gate ins/outs
 
-**Todo:**
-- Add MiniGateKeeper
+<!-- **Todo:** -->
 
 ### Envelope Follower
 
@@ -149,7 +155,31 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 - gate ins/outs
 
 **Todo:**
-- add Gate utilities (thresholds?)
+- add Gate utilities (thresholds)
+
+### Mini Gatekeeper (Layer Only)
+
+This is a mini version of the Gatekeeper, that just splits the triggers 2/3 and 1/3 randomly. The two trigger ins are ANDed together before gatekeeping. Note: this isn't its own mode, but is layered on top of some other modes that had the gate ins/outs free.
+
+**Inputs:**
+- `B10`: trigger/gate input
+- `B9`: trigger/gate input
+
+**Outputs:**
+- `gate_out_1`: Trigger Output
+- `gate_out_2`: Inverse Trigger Output (lets thru the "other" triggers)
+
+### Other Plans for Future...
+
+- Save current Mode when switching
+- Quantizer w/ "new chord" trigger
+- Pitch shift/Granular Processor
+- EG - use Basic Example
+- CV Slew Limiter - basically do the Up/Down slewing that Maths does
+- Note generator - CV output for melodies
+- garbled/granular effect idea
+- Drum w/ 4 trigger inputs and 2 CV inputs? 
+
 
 ## Various Notes
 

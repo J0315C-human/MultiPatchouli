@@ -6,6 +6,7 @@
 #include "Reverb.h"
 #include "VCAUtility.h"
 #include "EnvFollower.h"
+#include "MiniGateKeeper.h"
 
 using namespace daisy;
 using namespace patch_sm;
@@ -15,7 +16,6 @@ DaisyPatchSM patch;
 Switch       toggle;
 Switch       button;
 Blinker      blinker;
-
 
 constexpr int NUM_MODES = 5;
 
@@ -30,6 +30,9 @@ Reverb reverb;
 VCAUtility vcaUtility;
 // 4: EnvFollower
 EnvFollower envFollower;
+
+// "layered on top of" other modes:
+MiniGateKeeper miniGateKeeper;
 
 int      currentMode;
 uint16_t LED_OUT_LOWPRIORITY;
@@ -50,16 +53,19 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
         }
         case 1:
         {
+            miniGateKeeper.AudioCallback(in, out, size);
             superSaw.AudioCallback(in, out, size);
             break;
         }
         case 2:
         {
+            miniGateKeeper.AudioCallback(in, out, size);
             reverb.AudioCallback(in, out, size);
             break;
         }
         case 3:
         {
+            miniGateKeeper.AudioCallback(in, out, size);
             vcaUtility.AudioCallback(in, out, size);
             break;
         }
@@ -94,16 +100,19 @@ void MainDacCallback(uint16_t **output, size_t size)
         }
         case 1:
         {
+            miniGateKeeper.DacCallback(output, size);
             superSaw.DacCallback(output, size);
             break;
         }
         case 2:
         {
+            miniGateKeeper.DacCallback(output, size);
             reverb.DacCallback(output, size);
             break;
         }
         case 3:
         {
+            miniGateKeeper.DacCallback(output, size);
             vcaUtility.DacCallback(output, size);
             break;
         }
@@ -141,6 +150,7 @@ int main(void)
     reverb.Init();
     vcaUtility.Init();
     envFollower.Init();
+    miniGateKeeper.Init();
 
     patch.StartAudio(MainAudioCallback);
     patch.StartDac(MainDacCallback);

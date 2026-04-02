@@ -7,7 +7,7 @@ using namespace daisy;
 using namespace daisysp;
 using namespace patch_sm;
 
-extern DaisyPatchSM    patch;
+extern DaisyPatchSM patch;
 
 /* this was found with trial-and-error with my particular unit. */
 static constexpr float CALIBRATE_VOCT = 0.9790673f;

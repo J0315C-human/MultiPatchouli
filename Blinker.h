@@ -1,5 +1,7 @@
 #pragma once
 
+extern uint16_t LED_OUT_LOWPRIORITY;
+
 class Blinker
 {
   private:
@@ -14,8 +16,10 @@ class Blinker
     int   remainingBlinks;
     int   samplesUntilNext;
     bool  state;
-    int   onOffSamples;
-    int   marginSamples;
+    int   onSamples;
+    int   offSamples;
+    int   marginInSamples;
+    int   marginOutSamples;
     float sampleRate;
     Phase phase;
 
@@ -32,14 +36,16 @@ class Blinker
     void Init(float sampleRate)
     {
         this->sampleRate = sampleRate;
-        onOffSamples     = (100.f / 1000.f) * sampleRate;
-        marginSamples    = (300.f / 1000.f) * sampleRate;
+        onSamples        = (60.f / 1000.f) * sampleRate;
+        offSamples       = (160.f / 1000.f) * sampleRate;
+        marginInSamples  = (80.f / 1000.f) * sampleRate; 
+        marginOutSamples = (300.f / 1000.f) * sampleRate;
     }
 
     void Trigger(int count)
     {
         remainingBlinks  = count * 2; // each blink = 1 on + 1 off
-        samplesUntilNext = marginSamples;
+        samplesUntilNext = marginInSamples;
         state            = false;
         phase            = MARGIN_IN;
     }
@@ -59,7 +65,7 @@ class Blinker
             case MARGIN_IN:
                 phase            = BLINKING;
                 state            = true;
-                samplesUntilNext = onOffSamples;
+                samplesUntilNext = onSamples;
                 break;
 
             case BLINKING:
@@ -70,17 +76,19 @@ class Blinker
                 {
                     state            = false;
                     phase            = MARGIN_OUT;
-                    samplesUntilNext = marginSamples;
+                    samplesUntilNext = marginOutSamples;
                 }
                 else
                 {
-                    samplesUntilNext = onOffSamples;
+                    samplesUntilNext = state ? onSamples : offSamples;
                 }
                 break;
 
             case MARGIN_OUT:
-                phase = IDLE;
-                state = false;
+                // turn off "low Priority" led in case it's on from prev modes
+                LED_OUT_LOWPRIORITY = 0.f;
+                phase               = IDLE;
+                state               = false;
                 break;
 
             case IDLE: break;
