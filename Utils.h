@@ -35,3 +35,10 @@ inline float cheapTanh(float x)
     x = DSY_CLAMP(x, -3.f, 3.f);
     return x * (27.f + x * x) / (27.f + 9.f * x * x);
 }
+
+/* Convert from MIDI note number to frequency */
+inline float VoltageToFrequency(float voltage)
+{
+    float midi_nn = fclamp(voltage * CALIBRATE_VOCT, 0.f, 127.f);
+    return mtof(midi_nn);
+}

@@ -73,9 +73,7 @@ void SuperSaw::AudioCallback(AudioHandle::InputBuffer  in,
     float cv_voct     = patch.GetAdcValue(CV_5);
     float voct        = fmap(cv_voct, 0, 60);
 
-    /** Convert from MIDI note number to frequency */
-    float midi_nn  = fclamp((coarse_tune + voct) * CALIBRATE_VOCT, 0.f, 127.f);
-    float mid_freq = mtof(midi_nn);
+    float mid_freq = VoltageToFrequency(coarse_tune + voct);
 
     // this just chops off the non-int part of the number
     int n_extra_voices = fmap(knob_extraVoices, 1.f, 4.9f);

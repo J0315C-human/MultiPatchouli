@@ -65,7 +65,6 @@ This is just the TripleSaw example from the Daisy repo, ported over to fit into 
 
 **Unused:**
 - Audio ins
-- gate ins/outs
 - `CV_OUT_1`
 - `CV_6` – `CV_8`
 
@@ -96,7 +95,6 @@ This is a basic reverb.
 **Unused:**
 - `CV_5` – `CV_8`
 - Switch `B8`
-- gate ins/outs
 
 **Todo:**
 - Add CV control for time/damping/dry/send
