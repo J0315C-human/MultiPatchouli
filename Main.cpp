@@ -7,6 +7,7 @@
 #include "VCAUtility.h"
 #include "EnvFollower.h"
 #include "MiniGateKeeper.h"
+#include "ButtonPressHelper.h"
 
 using namespace daisy;
 using namespace patch_sm;
@@ -14,7 +15,7 @@ using namespace daisysp;
 
 DaisyPatchSM patch;
 Switch       toggle;
-Switch       button;
+Switch       button7;
 Blinker      blinker;
 
 constexpr int NUM_MODES = 5;
@@ -37,6 +38,8 @@ MiniGateKeeper miniGateKeeper;
 int      currentMode;
 uint16_t LED_OUT_LOWPRIORITY;
 uint16_t CV_OUT_LOWPRIORITY;
+
+ButtonPressHelper btnLongPress;
 
 void MainAudioCallback(AudioHandle::InputBuffer  in,
                        AudioHandle::OutputBuffer out,
@@ -81,15 +84,14 @@ void MainDacCallback(uint16_t **output, size_t size)
 {
     patch.ProcessAllControls();
     toggle.Debounce();
-    button.Debounce();
+    button7.Debounce();
 
-    if(button.RisingEdge())
+    // long press changes mode
+    if(btnLongPress.ProcessAndCheckTrigger())
     {
         currentMode = (currentMode + 1) % NUM_MODES;
-
         blinker.Trigger(currentMode + 1);
     }
-
 
     switch(currentMode)
     {
@@ -139,9 +141,9 @@ int main(void)
 {
     patch.Init();
     toggle.Init(patch.B8);
-    button.Init(patch.B7);
-    blinker.Init(48000);
-
+    button7.Init(patch.B7);
+    blinker.Init(48000);     // MAGIC NUMBER
+    btnLongPress.Init(1000); // MAGIC NUMBER
     currentMode = 0;
 
     // Init the Module mode classes

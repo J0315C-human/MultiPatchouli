@@ -1,6 +1,5 @@
 #pragma once
 #include "IModuleMode.h"
-#include "Blinker.h"
 
 extern DaisyPatchSM patch;
 

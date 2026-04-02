@@ -4,7 +4,7 @@ Firmware for the Daisy Patch.Init() with multiple "module modes" with different 
 
 ### Selecting Mode
 
-Press Button B7 to cycle between the modes. The LED will blink a number of times indicating which selection you're on.
+Long-Press button B7 to cycle between the modes. The LED will blink a number of times indicating which selection you're on.
 
 1. "GateKeeper" mode
 2. "SuperSaw" mode
@@ -12,8 +12,6 @@ Press Button B7 to cycle between the modes. The LED will blink a number of times
 4. VCA Utility
 5. Envelope Follower
 
-> **Todo:** do selection by holding the button and moving a CV knob (or maybe two in sequence to have 12 or 16 presets?)
-> **Todo:** better way to show current mode than blinking? Install a second LED?
 ---
 
 ## Module Modes
