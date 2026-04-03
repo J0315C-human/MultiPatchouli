@@ -50,27 +50,23 @@ This is just the TripleSaw example from the Daisy repo, ported over to fit into 
 
 **Inputs:**
 - `CV_1`: Tuning
-- `CV_2`: Detune amt (goes up to 10%!)
-- `CV_3`: Num extra voices (rounds to 2, 4, 6, or 8)
-- `CV_4`: amt to scale down detuned voices
+- `CV_2` + `CV_6`: Detune amt (goes up to 10%!)
+- `CV_3` + `CV_7`: Num extra voices (rounds to 0, 2, 4, 6, or 8)
+- `CV_4` + `CV_8`: amt to scale down detuned voices
 - `CV_5`: v/oct input
-- `B8`: Switches between Saw and Triangle voices
+- `B7`: Switches between Saw/Square/Tri/Sine
+- `B8`: Up is VCO range, Down is LFO range
 
 **Outputs:**
-- `audio_1`: left channel out
-- `audio_2`: right channel out
+- `audio L`: left channel out
+- `audio R`: right channel out
 
 **Added layers:**
 - Mini GateKeeper (see below)
-
-**Unused:**
-- Audio ins
-- `CV_OUT_1`
-- `CV_6` – `CV_8`
+- Mini Envelope Follower (see below)
 
 **Todo:**
-- Add CV in for Detune amt
-- Have button switch waveforms instead of switch
+- Could add a basic Audio In Envelope Follower
 
 ---
 
@@ -79,25 +75,23 @@ This is just the TripleSaw example from the Daisy repo, ported over to fit into 
 This is a basic reverb.
 
 **Inputs:**
-- `CV_1`: Time
-- `CV_2`: Damping
-- `CV_3`: Dry Level
-- `CV_4`: Send Level
-- `audio`: stereo audio input
+- `CV_1` + `CV_5`: Time
+- `CV_2` + `CV_6`: Damping
+- `CV_3` + `CV_7`: Dry Level
+- `CV_4` + `CV_8`: Send Level
+- `audio R/L`: stereo audio input
 - `CV_OUT_1`: envelope follower of wet effect signal
 
 **Outputs:**
-- `audio`: stereo audio output
+- `audio R/L`: stereo audio output
 
 **Added layers:**
 - Mini GateKeeper (see below)
 
 **Unused:**
-- `CV_5` – `CV_8`
 - Switch `B8`
 
-**Todo:**
-- Add CV control for time/damping/dry/send
+<!-- **Todo:** -->
 
 ---
 
@@ -114,10 +108,12 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 - `CV_6`: CV control for audio 2
 - `CV_7`: CV input
 - `CV_8`: CV control for CV input (unipolar)
+- `audio L`: audio 1 input
+- `audio R`: audio 2 input
 
 **Outputs:**
-- `audio_left`: audio 1 processed
-- `audio_right`: audio 2 processed
+- `audio L`: audio 1 processed
+- `audio R`: audio 2 processed
 - `CV_OUT_1`: CV input processed (unipolar)
 
 **Added layers:**
@@ -153,6 +149,8 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 **Todo:**
 - add Gate utilities (thresholds)
 
+---
+
 ### Mini Gatekeeper (Layer Only)
 
 This is a mini version of the Gatekeeper, that just splits the triggers 2/3 and 1/3 randomly. The two trigger ins are ANDed together before gatekeeping. Note: this isn't its own mode, but is layered on top of some other modes that had the gate ins/outs free.
@@ -164,6 +162,20 @@ This is a mini version of the Gatekeeper, that just splits the triggers 2/3 and 
 **Outputs:**
 - `gate_out_1`: Trigger Output
 - `gate_out_2`: Inverse Trigger Output (lets thru the "other" triggers)
+
+### Mini Envelope Follower (Layer Only)
+
+This provides a simple envelope follower. Envelope params are preset with good "general use case" values.
+
+**Inputs:**
+- `audio L`: audio Input
+- `audio R`: audio Input
+
+**Outputs:**
+- `CV_OUT_1`: follower envelope of audio L
+- `audio`: audio passthru (unless overridden by other module)
+
+---
 
 ### Other Plans for Future...
 

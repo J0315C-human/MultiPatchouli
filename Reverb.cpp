@@ -19,17 +19,20 @@ void Reverb::AudioCallback(AudioHandle::InputBuffer  in,
                            size_t                    size)
 {
     /** Update Params with the four knobs */
-    float time_knob = patch.GetAdcValue(CV_1);
+    float time_knob = GetCombinedKnobCv(CV_1, CV_5);
     float time      = fmap(time_knob, 0.3f, 0.99f);
 
-    float damp_knob = patch.GetAdcValue(CV_2);
+    float damp_knob = GetCombinedKnobCv(CV_2, CV_6);
     float damp      = fmap(damp_knob, 1000.f, 19000.f, Mapping::LOG);
 
-    float dry_level  = patch.GetAdcValue(CV_3);
-    float send_level = patch.GetAdcValue(CV_4);
+    float dry_level  = GetCombinedKnobCv(CV_3, CV_7);
+    float send_level = GetCombinedKnobCv(CV_4, CV_8);
 
-    reverb.SetFeedback(time);
-    reverb.SetLpFreq(damp);
+    dry_level  = DSY_CLAMP(dry_level, 0, 2);
+    send_level = DSY_CLAMP(send_level, 0, 2);
+
+    reverb.SetFeedback(DSY_CLAMP(time, 0.001f, 0.99f));
+    reverb.SetLpFreq(DSY_CLAMP(damp, 500.f, 22000.f));
 
     for(size_t i = 0; i < size; i++)
     {

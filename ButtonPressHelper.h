@@ -8,14 +8,36 @@ extern Switch button7;
 class ButtonPressHelper
 {
   public:
+    enum PressType
+    {
+        SHORT_PRESS,
+        LONG_PRESS,
+        EXTRA_LONG_PRESS
+    };
     ButtonPressHelper() {}
     ~ButtonPressHelper() {}
 
-    void Init(int triggerLength)
+    void Init(PressType type)
     {
         samplesSincePressed = 0;
-        samplesToTrigger    = triggerLength;
-        buttonWasDown       = false;
+
+        // MAGIC NUMBERS
+        switch(type)
+        {
+            case SHORT_PRESS:
+                minSamplesToTrigger = 0;
+                maxSamplesToTrigger = 999;
+                break;
+            case LONG_PRESS:
+                minSamplesToTrigger = 1000;
+                maxSamplesToTrigger = 4999;
+                break;
+            case EXTRA_LONG_PRESS:
+                minSamplesToTrigger = 5000;
+                maxSamplesToTrigger = 100000000;
+                break;
+        }
+        buttonWasDown = false;
     }
 
     bool ProcessAndCheckTrigger()
@@ -39,8 +61,9 @@ class ButtonPressHelper
             }
             buttonWasDown = false;
 
-            // trigger on falling edge if enough time has passed
-            if(samplesSincePressed >= samplesToTrigger)
+            // trigger on falling edge if within time window
+            if(samplesSincePressed >= minSamplesToTrigger
+               && samplesSincePressed <= maxSamplesToTrigger)
             {
                 samplesSincePressed = 0;
                 return true;
@@ -56,6 +79,7 @@ class ButtonPressHelper
 
   private:
     int  samplesSincePressed;
-    int  samplesToTrigger;
+    int  minSamplesToTrigger;
+    int  maxSamplesToTrigger;
     bool buttonWasDown;
 };

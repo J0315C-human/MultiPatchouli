@@ -7,6 +7,7 @@
 #include "VCAUtility.h"
 #include "EnvFollower.h"
 #include "MiniGateKeeper.h"
+#include "MiniEnvFollower.h"
 #include "ButtonPressHelper.h"
 
 using namespace daisy;
@@ -33,7 +34,8 @@ VCAUtility vcaUtility;
 EnvFollower envFollower;
 
 // "layered on top of" other modes:
-MiniGateKeeper miniGateKeeper;
+MiniGateKeeper  miniGateKeeper;
+MiniEnvFollower miniEnvFollower;
 
 int      currentMode;
 uint16_t LED_OUT_LOWPRIORITY;
@@ -56,6 +58,7 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
         }
         case 1:
         {
+            miniEnvFollower.AudioCallback(in, out, size);
             miniGateKeeper.AudioCallback(in, out, size);
             superSaw.AudioCallback(in, out, size);
             break;
@@ -102,6 +105,7 @@ void MainDacCallback(uint16_t **output, size_t size)
         }
         case 1:
         {
+            miniEnvFollower.DacCallback(output, size);
             miniGateKeeper.DacCallback(output, size);
             superSaw.DacCallback(output, size);
             break;
@@ -142,8 +146,8 @@ int main(void)
     patch.Init();
     toggle.Init(patch.B8);
     button7.Init(patch.B7);
-    blinker.Init(48000);     // MAGIC NUMBER
-    btnLongPress.Init(1000); // MAGIC NUMBER
+    blinker.Init(48000); // MAGIC NUMBER
+    btnLongPress.Init(ButtonPressHelper::LONG_PRESS);
     currentMode = 0;
 
     // Init the Module mode classes
@@ -153,6 +157,7 @@ int main(void)
     vcaUtility.Init();
     envFollower.Init();
     miniGateKeeper.Init();
+    miniEnvFollower.Init();
 
     patch.StartAudio(MainAudioCallback);
     patch.StartDac(MainDacCallback);
