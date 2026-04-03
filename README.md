@@ -65,9 +65,6 @@ This is just the TripleSaw example from the Daisy repo, ported over to fit into 
 - Mini GateKeeper (see below)
 - Mini Envelope Follower (see below)
 
-**Todo:**
-- Could add a basic Audio In Envelope Follower
-
 ---
 
 ### Reverb
@@ -90,8 +87,6 @@ This is a basic reverb.
 
 **Unused:**
 - Switch `B8`
-
-<!-- **Todo:** -->
 
 ---
 
