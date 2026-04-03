@@ -18,6 +18,13 @@ class MiniEnvFollower : public IModuleMode
         ef.SetAttackRelease(ENV_ATT, ENV_REL);
     }
 
+    void DacCallback(uint16_t **output, size_t size) override
+    {
+        // set CV to follow envelope of just L channel
+        CV_OUT_LOWPRIORITY
+            = VoltageToCvValue(cheapTanh(ef.Value() * ENV_SCALE) * 5.f);
+    }
+
     void AudioCallback(AudioHandle::InputBuffer  in,
                        AudioHandle::OutputBuffer out,
                        size_t                    size) override
@@ -29,10 +36,6 @@ class MiniEnvFollower : public IModuleMode
 
             ef.Process(IN_L[i]);
         }
-
-        // set CV to follow envelope of just L channel
-        CV_OUT_LOWPRIORITY
-            = VoltageToCvValue(cheapTanh(ef.Value() * ENV_SCALE) * 5.f);
     }
 
 

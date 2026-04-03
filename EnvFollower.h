@@ -29,10 +29,15 @@ class EnvFollower : public IModuleMode
     ~EnvFollower();
 
     void Init() override;
+
+    void DacCallback(uint16_t **output, size_t size) override;
+
     void AudioCallback(AudioHandle::InputBuffer  in,
                        AudioHandle::OutputBuffer out,
                        size_t                    size) override;
 
   private:
     _EnvFollower ef;
+    float        envelopeScaling;
+    float        makeupGain_R;
 };

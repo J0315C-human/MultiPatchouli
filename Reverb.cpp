@@ -14,9 +14,7 @@ void Reverb::Init()
     ef.SetAttackRelease(ENV_ATT, ENV_REL);
 }
 
-void Reverb::AudioCallback(AudioHandle::InputBuffer  in,
-                           AudioHandle::OutputBuffer out,
-                           size_t                    size)
+void Reverb::DacCallback(uint16_t **output, size_t size)
 {
     /** Update Params with the four knobs */
     float time_knob = GetCombinedKnobCv(CV_1, CV_5);
@@ -25,15 +23,24 @@ void Reverb::AudioCallback(AudioHandle::InputBuffer  in,
     float damp_knob = GetCombinedKnobCv(CV_2, CV_6);
     float damp      = fmap(damp_knob, 1000.f, 19000.f, Mapping::LOG);
 
-    float dry_level  = GetCombinedKnobCv(CV_3, CV_7);
-    float send_level = GetCombinedKnobCv(CV_4, CV_8);
+    float knob_dry_level  = GetCombinedKnobCv(CV_3, CV_7);
+    float knob_send_level = GetCombinedKnobCv(CV_4, CV_8);
 
-    dry_level  = DSY_CLAMP(dry_level, 0, 2);
-    send_level = DSY_CLAMP(send_level, 0, 2);
+    dry_level  = DSY_CLAMP(knob_dry_level, 0, 2);
+    send_level = DSY_CLAMP(knob_send_level, 0, 2);
 
     reverb.SetFeedback(DSY_CLAMP(time, 0.001f, 0.99f));
     reverb.SetLpFreq(DSY_CLAMP(damp, 500.f, 22000.f));
 
+    // set CV to follow envelope of full-wet reverb (of just L channel)
+    CV_OUT_LOWPRIORITY
+        = VoltageToCvValue(cheapTanh(ef.Value() * ENV_SCALE) * 5.f);
+}
+
+void Reverb::AudioCallback(AudioHandle::InputBuffer  in,
+                           AudioHandle::OutputBuffer out,
+                           size_t                    size)
+{
     for(size_t i = 0; i < size; i++)
     {
         float dryl  = IN_L[i] * dry_level;
@@ -46,8 +53,4 @@ void Reverb::AudioCallback(AudioHandle::InputBuffer  in,
         OUT_L[i] = dryl + wetl;
         OUT_R[i] = dryr + wetr;
     }
-
-    // set CV to follow envelope of full-wet reverb (of just L channel)
-    CV_OUT_LOWPRIORITY
-        = VoltageToCvValue(cheapTanh(ef.Value() * ENV_SCALE) * 5.f);
 }

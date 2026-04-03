@@ -11,6 +11,8 @@ class Reverb : public IModuleMode
 
     void Init() override;
 
+    void DacCallback(uint16_t **output, size_t size) override;
+
     void AudioCallback(AudioHandle::InputBuffer  in,
                        AudioHandle::OutputBuffer out,
                        size_t                    size) override;
@@ -18,4 +20,6 @@ class Reverb : public IModuleMode
   private:
     ReverbSc     reverb;
     _EnvFollower ef;
+    float        dry_level;
+    float        send_level;
 };
