@@ -10,7 +10,7 @@ Long-Press button B7 to cycle between the modes. The LED will blink a number of 
 2. "SuperSaw" mode
 3. Reverb mode
 4. VCA Utility
-5. Envelope Follower
+5. Envelope Follower    
 
 ---
 
@@ -39,8 +39,9 @@ Logic to choose whether or not to "let" triggers through. Also provides a nice w
 - Audio ins and outs
 
 **Todo:**
-- Make audio out 1 duck audio based on the trigger and an envelope
+- Make audio out 1 duck audio based on the trigger and an envelope?
 - Apply same envelope to audio out 2, but only as a positive multiplier
+- OR, audio in/out could just be an average reverb
 
 ---
 
