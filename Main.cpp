@@ -9,6 +9,7 @@
 #include "MiniGateKeeper.h"
 #include "MiniEnvFollower.h"
 #include "ButtonPressHelper.h"
+#include "SettingsManager.h"
 
 using namespace daisy;
 using namespace patch_sm;
@@ -37,11 +38,15 @@ EnvFollower envFollower;
 MiniGateKeeper  miniGateKeeper;
 MiniEnvFollower miniEnvFollower;
 
-int      currentMode;
+// vars to track CV values to output at DacCallback speed
 uint16_t LED_OUT_LOWPRIORITY;
 uint16_t CV_OUT_LOWPRIORITY;
 
+// Helpers / global data
 ButtonPressHelper btnLongPress;
+SettingsManager   settingsManager;
+Settings          settings;
+volatile bool     shouldSave;
 
 void MainAudioCallback(AudioHandle::InputBuffer  in,
                        AudioHandle::OutputBuffer out,
@@ -49,7 +54,7 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
 {
     patch.ProcessAllControls();
 
-    switch(currentMode)
+    switch(settings.mode)
     {
         case 0:
         {
@@ -92,11 +97,12 @@ void MainDacCallback(uint16_t **output, size_t size)
     // long press changes mode
     if(btnLongPress.ProcessAndCheckTrigger())
     {
-        currentMode = (currentMode + 1) % NUM_MODES;
-        blinker.Trigger(currentMode + 1);
+        settings.mode = (settings.mode + 1) % NUM_MODES;
+        blinker.Trigger(settings.mode + 1);
+        shouldSave = true;
     }
 
-    switch(currentMode)
+    switch(settings.mode)
     {
         case 0:
         {
@@ -148,7 +154,7 @@ int main(void)
     button7.Init(patch.B7);
     blinker.Init(48000); // MAGIC NUMBER
     btnLongPress.Init(ButtonPressHelper::LONG_PRESS);
-    currentMode = 0;
+    settings.mode = 0;
 
     // Init the Module mode classes
     gateKeeper.Init();
@@ -159,10 +165,22 @@ int main(void)
     miniGateKeeper.Init();
     miniEnvFollower.Init();
 
+    // load saved settings or defaults
+    settingsManager.Init();
+    settingsManager.Load(settings);
+
+    // start patch stuff
     patch.StartAudio(MainAudioCallback);
     patch.StartDac(MainDacCallback);
 
-    blinker.Trigger(currentMode);
+    blinker.Trigger(settings.mode);
 
-    while(1) {}
+    while(1)
+    {
+        if(shouldSave)
+        {
+            shouldSave = false;
+            settingsManager.Save(settings);
+        }
+    }
 }

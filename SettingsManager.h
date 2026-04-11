@@ -1,3 +1,4 @@
+#pragma once
 #include <stdio.h>
 #include <string.h>
 #include <sstream>
@@ -12,7 +13,21 @@
 using namespace daisy;
 using namespace patch_sm;
 
-extern int currentMode;
+struct Settings
+{
+    int mode;
+    int reserved1;
+    int reserved2;
+    int reserved3;
+    int reserved4;
+    int reserved5;
+    int reserved6;
+    int reserved7;
+
+    // default values
+    Settings() : mode(0), reserved1(0), reserved2(0), reserved3(0),
+                 reserved4(0), reserved5(0), reserved6(0), reserved7(0) {}
+};
 
 class SettingsManager
 {
@@ -28,13 +43,47 @@ class SettingsManager
         return ss.str();
     }
 
-    std::string getOutputValue()
+    std::string Serialize(const Settings& s)
     {
-        // populate these 0s with other settings values
-        return zeroPadNumber(currentMode) + ";" + zeroPadNumber(0) + ";"
-               + zeroPadNumber(0) + ";" + zeroPadNumber(0) + ";"
-               + zeroPadNumber(0) + ";" + zeroPadNumber(0) + ";"
-               + zeroPadNumber(0) + ";" + zeroPadNumber(0);
+        return zeroPadNumber(s.mode)       + ";"
+             + zeroPadNumber(s.reserved1)  + ";"
+             + zeroPadNumber(s.reserved2)  + ";"
+             + zeroPadNumber(s.reserved3)  + ";"
+             + zeroPadNumber(s.reserved4)  + ";"
+             + zeroPadNumber(s.reserved5)  + ";"
+             + zeroPadNumber(s.reserved6)  + ";"
+             + zeroPadNumber(s.reserved7);
+    }
+
+    bool Deserialize(const std::string& data, Settings& out)
+    {
+        std::vector<int> result;
+        std::stringstream ss(data);
+        std::string val;
+
+        while(std::getline(ss, val, ';'))
+        {
+            try
+            {
+                result.push_back(std::stoi(val));
+            }
+            catch(const std::invalid_argument&) { result.push_back(0); }
+            catch(const std::out_of_range&)     { result.push_back(0); }
+        }
+
+        if(result.size() < 8)
+            return false;
+
+        out.mode      = result[0];
+        out.reserved1 = result[1];
+        out.reserved2 = result[2];
+        out.reserved3 = result[3];
+        out.reserved4 = result[4];
+        out.reserved5 = result[5];
+        out.reserved6 = result[6];
+        out.reserved7 = result[7];
+
+        return true;
     }
 
   public:
@@ -55,18 +104,16 @@ class SettingsManager
         f_mount(&fsi.GetSDFileSystem(), "/", 1);
     }
 
-
-    bool Save()
+    bool Save(const Settings& settings)
     {
         f_close(&SDFile); // close in case it was left open
 
         char   outbuff[512];
-        size_t len;
         size_t byteswritten = 0;
 
-        snprintf(outbuff, sizeof(outbuff), "%s", getOutputValue().c_str());
+        snprintf(outbuff, sizeof(outbuff), "%s", Serialize(settings).c_str());
 
-        len = strlen(outbuff);
+        size_t len = strlen(outbuff);
 
         // Open and write the file to the SD Card.
         if(f_open(&SDFile, FILE_NAME, (FA_CREATE_ALWAYS) | (FA_WRITE)) == FR_OK)
@@ -78,12 +125,11 @@ class SettingsManager
         return (byteswritten > 0);
     }
 
-    bool Load()
+    bool Load(Settings& settings)
     {
         f_close(&SDFile); // close in case it was left open
 
         char   inbuff[512];
-        size_t len       = getOutputValue().length();
         size_t bytesread = 0;
 
         memset(inbuff, 0, 512);
@@ -91,50 +137,12 @@ class SettingsManager
         // Read back the file from the SD Card.
         if(f_open(&SDFile, FILE_NAME, FA_READ) == FR_OK)
         {
-            f_read(&SDFile, inbuff, len, &bytesread);
+            f_read(&SDFile, inbuff, Serialize(settings).length(), &bytesread);
             f_close(&SDFile);
         }
 
-        // Read the input buffer into a vector of ints
-        std::string asString = inbuff;
+        std::string asString = bytesread ? inbuff : Serialize(Settings());
 
-        if(!bytesread)
-        {
-            // default to a clean data state - maybe we have nothing saved yet
-            asString = getOutputValue();
-        }
-
-        std::vector<int> result;
-
-        std::stringstream data(asString);
-
-        std::string val;
-        while(std::getline(data, val, ';'))
-        {
-            try
-            {
-                int intVal = std::stoi(val);
-                result.push_back(intVal);
-            }
-            catch(const std::invalid_argument&)
-            {
-                result.push_back(0);
-            }
-            catch(const std::out_of_range&)
-            {
-                result.push_back(0);
-            }
-        }
-        // we should have 8 int values
-        if(result.size() < 8)
-        {
-            return false;
-        }
-
-        // write values
-
-        // VALUE 1: mode
-        currentMode = result[0];
-        return true;
+        return Deserialize(asString, settings);
     }
 };
