@@ -173,7 +173,8 @@ int main(void)
     patch.StartAudio(MainAudioCallback);
     patch.StartDac(MainDacCallback);
 
-    blinker.Trigger(settings.mode);
+    // show current mode
+    blinker.Trigger(settings.mode + 1);
 
     while(1)
     {

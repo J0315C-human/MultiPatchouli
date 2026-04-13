@@ -1,9 +1,6 @@
 #pragma once
 #include <stdio.h>
 #include <string.h>
-#include <sstream>
-#include <iostream>
-#include <iomanip>
 #include "daisy_patch_sm.h"
 #include "daisysp.h"
 #include "fatfs.h"
@@ -45,46 +42,46 @@ class SettingsManager
     FatFSInterface fsi;
     FIL            SDFile;
 
-    std::string zeroPadNumber(int num)
+    void Serialize(const Settings& s, char* buf, size_t bufSize)
     {
-        std::ostringstream ss;
-        ss << std::setw(3) << std::setfill('0') << num;
-        return ss.str();
+        snprintf(buf,
+                 bufSize,
+                 "%03d;%03d;%03d;%03d;%03d;%03d;%03d;%03d",
+                 s.mode,
+                 s.reserved1,
+                 s.reserved2,
+                 s.reserved3,
+                 s.reserved4,
+                 s.reserved5,
+                 s.reserved6,
+                 s.reserved7);
     }
 
-    std::string Serialize(const Settings& s)
+    bool Deserialize(const char* data, Settings& out)
     {
-        return zeroPadNumber(s.mode) + ";" + zeroPadNumber(s.reserved1) + ";"
-               + zeroPadNumber(s.reserved2) + ";" + zeroPadNumber(s.reserved3)
-               + ";" + zeroPadNumber(s.reserved4) + ";"
-               + zeroPadNumber(s.reserved5) + ";" + zeroPadNumber(s.reserved6)
-               + ";" + zeroPadNumber(s.reserved7);
-    }
-    bool Deserialize(const std::string& data, Settings& out)
-    {
-        std::vector<int>  result;
-        std::stringstream ss(data);
-        std::string       val;
+        int vals[8] = {0};
+        int parsed  = sscanf(data,
+                             "%d;%d;%d;%d;%d;%d;%d;%d",
+                             &vals[0],
+                             &vals[1],
+                             &vals[2],
+                             &vals[3],
+                             &vals[4],
+                             &vals[5],
+                             &vals[6],
+                             &vals[7]);
 
-        while(std::getline(ss, val, ';'))
-        {
-            char* end;
-            long  intVal = strtol(val.c_str(), &end, 10);
-            // if end == val.c_str(), no valid conversion was made
-            result.push_back(end != val.c_str() ? (int)intVal : 0);
-        }
-
-        if(result.size() < 8)
+        if(parsed < 8)
             return false;
 
-        out.mode      = result[0];
-        out.reserved1 = result[1];
-        out.reserved2 = result[2];
-        out.reserved3 = result[3];
-        out.reserved4 = result[4];
-        out.reserved5 = result[5];
-        out.reserved6 = result[6];
-        out.reserved7 = result[7];
+        out.mode      = vals[0];
+        out.reserved1 = vals[1];
+        out.reserved2 = vals[2];
+        out.reserved3 = vals[3];
+        out.reserved4 = vals[4];
+        out.reserved5 = vals[5];
+        out.reserved6 = vals[6];
+        out.reserved7 = vals[7];
 
         return true;
     }
@@ -93,7 +90,7 @@ class SettingsManager
     SettingsManager() {}
     ~SettingsManager() {}
 
-    void Init()
+    bool Init()
     {
         // Init SD Card
         SdmmcHandler::Config sd_cfg;
@@ -104,7 +101,8 @@ class SettingsManager
         fsi.Init(FatFSInterface::Config::MEDIA_SD);
 
         // Mount SD Card
-        f_mount(&fsi.GetSDFileSystem(), "/", 1);
+        FRESULT mountResult = f_mount(&fsi.GetSDFileSystem(), "/", 1);
+        return mountResult == FR_OK;
     }
 
     bool Save(const Settings& settings)
@@ -114,8 +112,7 @@ class SettingsManager
         char   outbuff[512];
         size_t byteswritten = 0;
 
-        snprintf(outbuff, sizeof(outbuff), "%s", Serialize(settings).c_str());
-
+        Serialize(settings, outbuff, sizeof(outbuff));
         size_t len = strlen(outbuff);
 
         // Open and write the file to the SD Card.
@@ -135,17 +132,22 @@ class SettingsManager
         char   inbuff[512];
         size_t bytesread = 0;
 
-        memset(inbuff, 0, 512);
+        memset(inbuff, 0, sizeof(inbuff));
 
         // Read back the file from the SD Card.
         if(f_open(&SDFile, FILE_NAME, FA_READ) == FR_OK)
         {
-            f_read(&SDFile, inbuff, Serialize(settings).length(), &bytesread);
+            f_read(&SDFile, inbuff, sizeof(inbuff) - 1, &bytesread);
             f_close(&SDFile);
         }
 
-        std::string asString = bytesread ? inbuff : Serialize(Settings());
+        if(!bytesread)
+        {
+            // default to a clean data state - maybe we have nothing saved yet
+            Settings defaults;
+            Serialize(defaults, inbuff, sizeof(inbuff));
+        }
 
-        return Deserialize(asString, settings);
+        return Deserialize(inbuff, settings);
     }
 };

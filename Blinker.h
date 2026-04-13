@@ -16,6 +16,7 @@ class Blinker
     int   remainingBlinks;
     int   samplesUntilNext;
     bool  state;
+    bool  isFirstBlink;
     int   onSamples;
     int   offSamples;
     int   marginInSamples;
@@ -31,23 +32,26 @@ class Blinker
         state            = false;
         sampleRate       = 48000.f;
         phase            = IDLE;
+        isFirstBlink     = false;
     }
 
     void Init(float sampleRate)
     {
         this->sampleRate = sampleRate;
-        onSamples        = (60.f / 1000.f) * sampleRate;
-        offSamples       = (160.f / 1000.f) * sampleRate;
-        marginInSamples  = (80.f / 1000.f) * sampleRate; 
-        marginOutSamples = (300.f / 1000.f) * sampleRate;
+        onSamples        = (100.f / 1000.f) * sampleRate;
+        offSamples       = (200.f / 1000.f) * sampleRate;
+        marginInSamples  = (250.f / 1000.f) * sampleRate;
+        marginOutSamples = (400.f / 1000.f) * sampleRate;
     }
 
     void Trigger(int count)
     {
         remainingBlinks  = count * 2; // each blink = 1 on + 1 off
-        samplesUntilNext = marginInSamples;
+        samplesUntilNext = isFirstBlink ? marginInSamples * 5
+                                        : marginInSamples; // delay first blink
         state            = false;
         phase            = MARGIN_IN;
+        isFirstBlink     = false;
     }
 
     void Process()
