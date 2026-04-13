@@ -3,11 +3,13 @@
 #include "EnvFollower.h"
 #include "Utils.h"
 
-class Reverb : public IModuleMode
+class MultiFX : public IModuleMode
 {
   public:
-    Reverb();
-    ~Reverb();
+    static constexpr int NUM_FX_MODES = 2;
+
+    MultiFX();
+    ~MultiFX();
 
     void Init() override;
 
@@ -18,7 +20,14 @@ class Reverb : public IModuleMode
                        size_t                    size) override;
 
   private:
+    enum EffectMode
+    {
+        Reverb,
+        PitchShift
+    };
     ReverbSc     reverb;
+    PitchShifter pitchShifterL;
+    PitchShifter pitchShifterR;
     _EnvFollower ef;
     float        dry_level;
     float        send_level;

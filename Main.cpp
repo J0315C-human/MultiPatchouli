@@ -3,7 +3,7 @@
 #include "GateKeeper.h"
 #include "SuperSaw.h"
 #include "Blinker.h"
-#include "Reverb.h"
+#include "MultiFX.h"
 #include "VCAUtility.h"
 #include "EnvFollower.h"
 #include "MiniGateKeeper.h"
@@ -22,16 +22,20 @@ Blinker      blinker;
 
 constexpr int NUM_MODES = 5;
 
-// MODE INDEX:
-// 0: GateKeeper
-GateKeeper gateKeeper;
-// 1: SuperSaw
-SuperSaw superSaw;
-// 2: Reverb
-Reverb reverb;
-// 3: VCAUtility
-VCAUtility vcaUtility;
-// 4: EnvFollower
+// MODE ORDER:
+enum GlobalMode
+{
+    SUPERSAW,
+    MULTIFX,
+    VCAUTILITY,
+    ENVFOLLOWER,
+    GATEKEEPER
+};
+
+GateKeeper  gateKeeper;
+SuperSaw    superSaw;
+MultiFX     multiFX;
+VCAUtility  vcaUtility;
 EnvFollower envFollower;
 
 // "layered on top of" other modes:
@@ -44,6 +48,7 @@ uint16_t CV_OUT_LOWPRIORITY;
 
 // Helpers / global data
 ButtonPressHelper btnLongPress;
+ButtonPressHelper btnShortPress;
 SettingsManager   settingsManager;
 Settings          settings;
 volatile bool     shouldSave;
@@ -56,31 +61,31 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
 
     switch(settings.mode)
     {
-        case 0:
+        case GlobalMode::GATEKEEPER:
         {
             gateKeeper.AudioCallback(in, out, size);
             break;
         }
-        case 1:
+        case GlobalMode::SUPERSAW:
         {
             miniEnvFollower.AudioCallback(in, out, size);
             miniGateKeeper.AudioCallback(in, out, size);
             superSaw.AudioCallback(in, out, size);
             break;
         }
-        case 2:
+        case GlobalMode::MULTIFX:
         {
             miniGateKeeper.AudioCallback(in, out, size);
-            reverb.AudioCallback(in, out, size);
+            multiFX.AudioCallback(in, out, size);
             break;
         }
-        case 3:
+        case GlobalMode::VCAUTILITY:
         {
             miniGateKeeper.AudioCallback(in, out, size);
             vcaUtility.AudioCallback(in, out, size);
             break;
         }
-        case 4:
+        case GlobalMode::ENVFOLLOWER:
         {
             envFollower.AudioCallback(in, out, size);
             break;
@@ -104,31 +109,39 @@ void MainDacCallback(uint16_t **output, size_t size)
 
     switch(settings.mode)
     {
-        case 0:
+        case GlobalMode::GATEKEEPER:
         {
             gateKeeper.DacCallback(output, size);
             break;
         }
-        case 1:
+        case GlobalMode::SUPERSAW:
         {
             miniEnvFollower.DacCallback(output, size);
             miniGateKeeper.DacCallback(output, size);
             superSaw.DacCallback(output, size);
             break;
         }
-        case 2:
+        case GlobalMode::MULTIFX:
         {
+            // short press changes fx mode when in fx mode
+            if(btnShortPress.ProcessAndCheckTrigger())
+            {
+                settings.effectMode
+                    = (settings.effectMode + 1) % MultiFX::NUM_FX_MODES;
+                shouldSave = true;
+            }
+
             miniGateKeeper.DacCallback(output, size);
-            reverb.DacCallback(output, size);
+            multiFX.DacCallback(output, size);
             break;
         }
-        case 3:
+        case GlobalMode::VCAUTILITY:
         {
             miniGateKeeper.DacCallback(output, size);
             vcaUtility.DacCallback(output, size);
             break;
         }
-        case 4:
+        case GlobalMode::ENVFOLLOWER:
         {
             envFollower.DacCallback(output, size);
             break;
@@ -154,12 +167,13 @@ int main(void)
     button7.Init(patch.B7);
     blinker.Init(48000); // MAGIC NUMBER
     btnLongPress.Init(ButtonPressHelper::LONG_PRESS);
+    btnShortPress.Init(ButtonPressHelper::SHORT_PRESS);
     settings.mode = 0;
 
     // Init the Module mode classes
     gateKeeper.Init();
     superSaw.Init();
-    reverb.Init();
+    multiFX.Init();
     vcaUtility.Init();
     envFollower.Init();
     miniGateKeeper.Init();

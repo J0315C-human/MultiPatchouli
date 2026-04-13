@@ -13,7 +13,7 @@ using namespace patch_sm;
 struct Settings
 {
     int mode;
-    int reserved1;
+    int effectMode;
     int reserved2;
     int reserved3;
     int reserved4;
@@ -24,7 +24,7 @@ struct Settings
     // default values
     Settings()
     : mode(0),
-      reserved1(0),
+      effectMode(0),
       reserved2(0),
       reserved3(0),
       reserved4(0),
@@ -48,7 +48,7 @@ class SettingsManager
                  bufSize,
                  "%03d;%03d;%03d;%03d;%03d;%03d;%03d;%03d",
                  s.mode,
-                 s.reserved1,
+                 s.effectMode,
                  s.reserved2,
                  s.reserved3,
                  s.reserved4,
@@ -74,14 +74,14 @@ class SettingsManager
         if(parsed < 8)
             return false;
 
-        out.mode      = vals[0];
-        out.reserved1 = vals[1];
-        out.reserved2 = vals[2];
-        out.reserved3 = vals[3];
-        out.reserved4 = vals[4];
-        out.reserved5 = vals[5];
-        out.reserved6 = vals[6];
-        out.reserved7 = vals[7];
+        out.mode       = vals[0];
+        out.effectMode = vals[1];
+        out.reserved2  = vals[2];
+        out.reserved3  = vals[3];
+        out.reserved4  = vals[4];
+        out.reserved5  = vals[5];
+        out.reserved6  = vals[6];
+        out.reserved7  = vals[7];
 
         return true;
     }
@@ -109,7 +109,7 @@ class SettingsManager
     {
         f_close(&SDFile); // close in case it was left open
 
-        char   outbuff[512];
+        char   outbuff[128];
         size_t byteswritten = 0;
 
         Serialize(settings, outbuff, sizeof(outbuff));
@@ -129,7 +129,7 @@ class SettingsManager
     {
         f_close(&SDFile); // close in case it was left open
 
-        char   inbuff[512];
+        char   inbuff[128];
         size_t bytesread = 0;
 
         memset(inbuff, 0, sizeof(inbuff));
