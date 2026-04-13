@@ -25,8 +25,17 @@ struct Settings
     int reserved7;
 
     // default values
-    Settings() : mode(0), reserved1(0), reserved2(0), reserved3(0),
-                 reserved4(0), reserved5(0), reserved6(0), reserved7(0) {}
+    Settings()
+    : mode(0),
+      reserved1(0),
+      reserved2(0),
+      reserved3(0),
+      reserved4(0),
+      reserved5(0),
+      reserved6(0),
+      reserved7(0)
+    {
+    }
 };
 
 class SettingsManager
@@ -45,30 +54,24 @@ class SettingsManager
 
     std::string Serialize(const Settings& s)
     {
-        return zeroPadNumber(s.mode)       + ";"
-             + zeroPadNumber(s.reserved1)  + ";"
-             + zeroPadNumber(s.reserved2)  + ";"
-             + zeroPadNumber(s.reserved3)  + ";"
-             + zeroPadNumber(s.reserved4)  + ";"
-             + zeroPadNumber(s.reserved5)  + ";"
-             + zeroPadNumber(s.reserved6)  + ";"
-             + zeroPadNumber(s.reserved7);
+        return zeroPadNumber(s.mode) + ";" + zeroPadNumber(s.reserved1) + ";"
+               + zeroPadNumber(s.reserved2) + ";" + zeroPadNumber(s.reserved3)
+               + ";" + zeroPadNumber(s.reserved4) + ";"
+               + zeroPadNumber(s.reserved5) + ";" + zeroPadNumber(s.reserved6)
+               + ";" + zeroPadNumber(s.reserved7);
     }
-
     bool Deserialize(const std::string& data, Settings& out)
     {
-        std::vector<int> result;
+        std::vector<int>  result;
         std::stringstream ss(data);
-        std::string val;
+        std::string       val;
 
         while(std::getline(ss, val, ';'))
         {
-            try
-            {
-                result.push_back(std::stoi(val));
-            }
-            catch(const std::invalid_argument&) { result.push_back(0); }
-            catch(const std::out_of_range&)     { result.push_back(0); }
+            char* end;
+            long  intVal = strtol(val.c_str(), &end, 10);
+            // if end == val.c_str(), no valid conversion was made
+            result.push_back(end != val.c_str() ? (int)intVal : 0);
         }
 
         if(result.size() < 8)
