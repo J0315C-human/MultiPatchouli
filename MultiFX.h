@@ -6,7 +6,7 @@
 class MultiFX : public IModuleMode
 {
   public:
-    static constexpr int NUM_FX_MODES = 2;
+    static constexpr int NUM_FX_MODES = 3;
 
     MultiFX();
     ~MultiFX();
@@ -23,11 +23,14 @@ class MultiFX : public IModuleMode
     enum EffectMode
     {
         Reverb,
-        PitchShift
+        PitchShift,
+        Crush
     };
     ReverbSc     reverb;
     PitchShifter pitchShifterL;
     PitchShifter pitchShifterR;
+    Bitcrush     bitcrushL;
+    Bitcrush     bitcrushR;
     _EnvFollower ef;
     float        dry_level;
     float        send_level;

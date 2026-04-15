@@ -14,6 +14,8 @@ void MultiFX::Init()
     reverb.Init(patch.AudioSampleRate());
     pitchShifterR.Init(patch.AudioSampleRate());
     pitchShifterL.Init(patch.AudioSampleRate());
+    bitcrushL.Init(patch.AudioSampleRate());
+    bitcrushR.Init(patch.AudioSampleRate());
     ef.Init();
     ef.SetAttackRelease(ENV_ATT, ENV_REL);
 }
@@ -43,16 +45,33 @@ void MultiFX::DacCallback(uint16_t **output, size_t size)
         }
         case EffectMode::PitchShift:
         {
-            float shiftL = fmap(param1, -8.f, 26.f, Mapping::EXP);
-            float shiftR = fmap(param2, -8.f, 26.f, Mapping::EXP);
+            float shiftL = fmap(param1, -6.f, 26.f, Mapping::EXP);
+            float shiftR = fmap(param2, -6.f, 26.f, Mapping::EXP);
 
             pitchShifterL.SetTransposition(shiftL);
             pitchShifterR.SetTransposition(shiftR);
             break;
         }
-        default:
-            // no processing
+        case EffectMode::Crush:
+        {
+            float bitDepth  = fmap(param1, 0, 16.99f);
+            float crushRate = fmap(param2, 100, 48000, Mapping::LOG);
+
+            float weirdOne = 1;
+            if(bitDepth > weirdOne && bitDepth <= weirdOne + 0.5f)
+            {
+                bitDepth = weirdOne - 1.f;
+            }
+            else if(bitDepth > weirdOne + 0.5f && bitDepth < weirdOne + 1.f)
+            {
+                bitDepth = weirdOne + 1.f;
+            }
+            bitcrushL.SetBitDepth(bitDepth);
+            bitcrushL.SetCrushRate(crushRate);
+            bitcrushR.SetBitDepth(bitDepth);
+            bitcrushR.SetCrushRate(crushRate);
             break;
+        }
     }
 
     // set CV to follow envelope of full-wet effect (of just L channel)
@@ -64,47 +83,45 @@ void MultiFX::AudioCallback(AudioHandle::InputBuffer  in,
                             AudioHandle::OutputBuffer out,
                             size_t                    size)
 {
-    switch(settings.effectMode)
+    for(size_t i = 0; i < size; i++)
     {
-        case EffectMode::Reverb:
+        float dryl  = IN_L[i] * dry_level;
+        float dryr  = IN_R[i] * dry_level;
+        float sendl = IN_L[i];
+        float sendr = IN_R[i];
+        float wetl = 0, wetr = 0;
+
+        switch(settings.effectMode)
         {
-            for(size_t i = 0; i < size; i++)
+            case EffectMode::Reverb:
             {
-                float dryl  = IN_L[i] * dry_level;
-                float dryr  = IN_R[i] * dry_level;
-                float sendl = IN_L[i] * send_level;
-                float sendr = IN_R[i] * send_level;
-                float wetl, wetr;
+                // sends is scaled by the send param
+
+                sendl *= send_level;
+                sendr *= send_level;
                 reverb.Process(sendl, sendr, &wetl, &wetr);
-                ef.Process(wetl);
-                OUT_L[i] = dryl + wetl;
-                OUT_R[i] = dryr + wetr;
+                break;
             }
-            break;
-        }
-        case EffectMode::PitchShift:
-        {
-            for(size_t i = 0; i < size; i++)
+            case EffectMode::PitchShift:
             {
-                float dryl  = IN_L[i] * dry_level;
-                float dryr  = IN_R[i] * dry_level;
-                float sendl = IN_L[i] * send_level;
-                float sendr = IN_R[i] * send_level;
-                float wetl  = pitchShifterL.Process(sendl);
-                float wetr  = pitchShifterR.Process(sendr);
-                ef.Process(wetl);
-                OUT_L[i] = dryl + wetl;
-                OUT_R[i] = dryr + wetr;
+                // sends 100%, but uses the send param to scale down the wet mix
+
+                wetl = pitchShifterL.Process(sendl) * send_level;
+                wetr = pitchShifterR.Process(sendr) * send_level;
+                break;
             }
-            break;
-        }
-        default:
-        {
-            for(size_t i = 0; i < size; i++)
+            case EffectMode::Crush:
             {
-                OUT_L[i] = IN_L[i];
-                OUT_R[i] = IN_R[i];
+                // sends 100%, but uses the send param to scale down the wet mix
+
+                wetl = cheapTanh(bitcrushL.Process(sendl) * send_level);
+                wetr = cheapTanh(bitcrushR.Process(sendr) * send_level);
+                break;
             }
         }
+        OUT_L[i] = dryl + wetl;
+        OUT_R[i] = dryr + wetr;
+        // Env follower follows left wet output
+        ef.Process(wetl);
     }
 }

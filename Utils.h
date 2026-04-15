@@ -13,8 +13,8 @@ extern DaisyPatchSM patch;
 static constexpr float CALIBRATE_VOCT = 0.9790673f;
 
 // Good "average" values to use for enveloper followers
-static constexpr float ENV_ATT        = 30.f;
-static constexpr float ENV_REL        = 100.f;
+static constexpr float ENV_ATT        = 20.f;
+static constexpr float ENV_REL        = 90.f;
 static constexpr float ENV_SCALE      = 2.f;
 
 inline float GetCombinedKnobCv(int knob, int cv)
