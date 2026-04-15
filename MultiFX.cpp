@@ -43,8 +43,8 @@ void MultiFX::DacCallback(uint16_t **output, size_t size)
         }
         case EffectMode::PitchShift:
         {
-            float shiftL = fmap(param1, -4.f, 24.f);
-            float shiftR = fmap(param2, -4.f, 24.f);
+            float shiftL = fmap(param1, -8.f, 26.f, Mapping::EXP);
+            float shiftR = fmap(param2, -8.f, 26.f, Mapping::EXP);
 
             pitchShifterL.SetTransposition(shiftL);
             pitchShifterR.SetTransposition(shiftR);

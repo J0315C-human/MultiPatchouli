@@ -188,4 +188,4 @@ This provides a simple envelope follower. Envelope params are preset with good "
 ## Various Notes
 
 - This repo expects libDaisy and DaisySP to be in the root directory.
-- Due to SRAM space limitations, I had to switch to `#define SHIFT_BUFFER_SIZE 4800` in DaisySP's pitchshifter.h
+- Due to SRAM space limitations, I had to switch to set `SHIFT_BUFFER_SIZE` to `8192` in DaisySP's pitchshifter.h and `DSY_REVERBSC_MAX_SIZE` to `70000` in reverbsc.h
