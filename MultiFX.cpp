@@ -114,8 +114,10 @@ void MultiFX::AudioCallback(AudioHandle::InputBuffer  in,
             {
                 // sends 100%, but uses the send param to scale down the wet mix
 
-                wetl = cheapTanh(bitcrushL.Process(sendl) * send_level);
-                wetr = cheapTanh(bitcrushR.Process(sendr) * send_level);
+                wetl
+                    = cheapTanh((float)(bitcrushL.Process(sendl))) * send_level;
+                wetr
+                    = cheapTanh((float)(bitcrushR.Process(sendr))) * send_level;
                 break;
             }
         }
