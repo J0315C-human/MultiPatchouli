@@ -9,7 +9,8 @@ GateKeeper.cpp \
 SuperSaw.cpp \
 MultiFX.cpp \
 VCAUtility.cpp \
-EnvFollower.cpp
+EnvFollower.cpp \
+Quantizer.cpp
 
 # Library Locations
 LIBDAISY_DIR = ./libDaisy/

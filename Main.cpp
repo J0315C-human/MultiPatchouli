@@ -7,6 +7,7 @@
 #include "VCAUtility.h"
 #include "EnvFollower.h"
 #include "MiniGateKeeper.h"
+#include "Quantizer.h"
 #include "MiniEnvFollower.h"
 #include "ButtonPressHelper.h"
 #include "SettingsManager.h"
@@ -20,7 +21,7 @@ Switch       toggle;
 Switch       button7;
 Blinker      blinker;
 
-constexpr int NUM_MODES = 5;
+constexpr int NUM_MODES = 6;
 
 // MODE ORDER:
 enum GlobalMode
@@ -29,13 +30,15 @@ enum GlobalMode
     MULTIFX,
     VCAUTILITY,
     ENVFOLLOWER,
-    GATEKEEPER
+    QUANTIZER,
+    GATEKEEPER,
 };
 
 GateKeeper  gateKeeper;
 SuperSaw    superSaw;
 MultiFX     multiFX;
 VCAUtility  vcaUtility;
+Quantizer   quantizer;
 EnvFollower envFollower;
 
 // "layered on top of" other modes:
@@ -88,6 +91,11 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
         case GlobalMode::ENVFOLLOWER:
         {
             envFollower.AudioCallback(in, out, size);
+            break;
+        }
+        case GlobalMode::QUANTIZER:
+        {
+            quantizer.AudioCallback(in, out, size);
             break;
         }
     }
@@ -146,6 +154,11 @@ void MainDacCallback(uint16_t **output, size_t size)
             envFollower.DacCallback(output, size);
             break;
         }
+        case GlobalMode::QUANTIZER:
+        {
+            quantizer.DacCallback(output, size);
+            break;
+        }
     }
 
     // set LED and cv out value, giving "Blinker" higher priority
@@ -178,6 +191,7 @@ int main(void)
     envFollower.Init();
     miniGateKeeper.Init();
     miniEnvFollower.Init();
+    quantizer.Init();
 
     // load saved settings or defaults
     settingsManager.Init();
