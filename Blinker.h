@@ -38,9 +38,9 @@ class Blinker
     void Init(float sampleRate)
     {
         this->sampleRate = sampleRate;
-        onSamples        = (100.f / 1000.f) * sampleRate;
-        offSamples       = (200.f / 1000.f) * sampleRate;
-        marginInSamples  = (250.f / 1000.f) * sampleRate;
+        onSamples        = (75.f / 1000.f) * sampleRate;
+        offSamples       = (150.f / 1000.f) * sampleRate;
+        marginInSamples  = (200.f / 1000.f) * sampleRate;
         marginOutSamples = (400.f / 1000.f) * sampleRate;
     }
 

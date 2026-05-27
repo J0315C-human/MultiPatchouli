@@ -124,6 +124,14 @@ void MainDacCallback(uint16_t **output, size_t size)
         }
         case GlobalMode::SUPERSAW:
         {
+            // short press: waveform
+            if(btnShortPress.ProcessAndCheckTrigger())
+            {
+                settings.superSawMode = (settings.superSawMode + 1)
+                                        % SuperSaw::NUM_SUPERSAW_MODES;
+                shouldSave            = true;
+                superSaw.UpdateWaveForm();
+            }
             miniEnvFollower.DacCallback(output, size);
             miniGateKeeper.DacCallback(output, size);
             superSaw.DacCallback(output, size);
@@ -131,14 +139,13 @@ void MainDacCallback(uint16_t **output, size_t size)
         }
         case GlobalMode::MULTIFX:
         {
-            // short press changes fx mode when in fx mode
+            // short press: fx mode
             if(btnShortPress.ProcessAndCheckTrigger())
             {
                 settings.effectMode
                     = (settings.effectMode + 1) % MultiFX::NUM_FX_MODES;
                 shouldSave = true;
             }
-
             miniGateKeeper.DacCallback(output, size);
             multiFX.DacCallback(output, size);
             break;
@@ -178,10 +185,13 @@ int main(void)
     patch.Init();
     toggle.Init(patch.B8);
     button7.Init(patch.B7);
-    blinker.Init(48000); // MAGIC NUMBER
+    blinker.Init(48000); // MAGIC NUM
     btnLongPress.Init(ButtonPressHelper::LONG_PRESS);
     btnShortPress.Init(ButtonPressHelper::SHORT_PRESS);
-    settings.mode = 0;
+
+    // load saved settings or defaults
+    settingsManager.Init();
+    settingsManager.Load(settings);
 
     // Init the Module mode classes
     gateKeeper.Init();
@@ -192,10 +202,6 @@ int main(void)
     miniGateKeeper.Init();
     miniEnvFollower.Init();
     quantizer.Init();
-
-    // load saved settings or defaults
-    settingsManager.Init();
-    settingsManager.Load(settings);
 
     // start patch stuff
     patch.StartAudio(MainAudioCallback);

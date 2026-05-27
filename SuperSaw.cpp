@@ -1,15 +1,15 @@
 #include "SuperSaw.h"
+#include "SettingsManager.h"
 
 extern DaisyPatchSM patch;
 extern Switch       toggle;
+extern Settings     settings;
 
 SuperSaw::SuperSaw() {}
 SuperSaw::~SuperSaw() {}
 
 void SuperSaw::Init()
 {
-    btn.Init(ButtonPressHelper::SHORT_PRESS);
-
     osc_main.Init(patch.AudioSampleRate());
     osc_a.Init(patch.AudioSampleRate());
     osc_b.Init(patch.AudioSampleRate());
@@ -19,37 +19,28 @@ void SuperSaw::Init()
     osc_f.Init(patch.AudioSampleRate());
     osc_g.Init(patch.AudioSampleRate());
     osc_h.Init(patch.AudioSampleRate());
-
-    waveForm = -1; // default us to Saw
-    SwitchWaveForm();
+    UpdateWaveForm();
 }
 
-void SuperSaw::SwitchWaveForm()
+void SuperSaw::UpdateWaveForm()
 {
     int newWF = 0;
-    switch(waveForm)
+    switch(settings.superSawMode)
     {
-        case(Oscillator::WAVE_POLYBLEP_SAW):
-            newWF = Oscillator::WAVE_POLYBLEP_SQUARE;
-            break;
-        case(Oscillator::WAVE_POLYBLEP_SQUARE):
-            newWF = Oscillator::WAVE_POLYBLEP_TRI;
-            break;
-        case(Oscillator::WAVE_POLYBLEP_TRI):
-            newWF = Oscillator::WAVE_SIN;
-            break;
-        default: newWF = Oscillator::WAVE_POLYBLEP_SAW;
+        case(0): newWF = Oscillator::WAVE_POLYBLEP_SAW; break;
+        case(1): newWF = Oscillator::WAVE_POLYBLEP_SQUARE; break;
+        case(2): newWF = Oscillator::WAVE_POLYBLEP_TRI; break;
+        case(3): newWF = Oscillator::WAVE_SIN; break;
     }
-    waveForm = newWF;
-    osc_main.SetWaveform(waveForm);
-    osc_a.SetWaveform(waveForm);
-    osc_b.SetWaveform(waveForm);
-    osc_c.SetWaveform(waveForm);
-    osc_d.SetWaveform(waveForm);
-    osc_e.SetWaveform(waveForm);
-    osc_f.SetWaveform(waveForm);
-    osc_g.SetWaveform(waveForm);
-    osc_h.SetWaveform(waveForm);
+    osc_main.SetWaveform(newWF);
+    osc_a.SetWaveform(newWF);
+    osc_b.SetWaveform(newWF);
+    osc_c.SetWaveform(newWF);
+    osc_d.SetWaveform(newWF);
+    osc_e.SetWaveform(newWF);
+    osc_f.SetWaveform(newWF);
+    osc_g.SetWaveform(newWF);
+    osc_h.SetWaveform(newWF);
 }
 
 void SuperSaw::DacCallback(uint16_t **output, size_t size)
@@ -77,18 +68,12 @@ void SuperSaw::DacCallback(uint16_t **output, size_t size)
 
     // Set detuning variables
     float detune_amt = GetCombinedKnobCv(CV_2, CV_6);
-    detune_incr      = (0.1 * mid_freq * detune_amt) / (n_extra_voices / 2);
+    detune_incr      = (0.2 * mid_freq * detune_amt) / (n_extra_voices / 2);
 
-    // adjust for percieved loss of volume when adding voices,
-    // and for detuned voices being scaled down. [there's probably real math that could be here]
+    // fudgy adjust for percieved loss of volume when adding voices,
+    // and for scaled down detuned voices.
     loudnessFudge
         = 1.f + (n_extra_voices * 0.18f) + ((1 - knob_scaleFactor) * 0.25f);
-
-    // settings
-    if(btn.ProcessAndCheckTrigger())
-    {
-        SwitchWaveForm();
-    }
 }
 
 void SuperSaw::AudioCallback(AudioHandle::InputBuffer  in,

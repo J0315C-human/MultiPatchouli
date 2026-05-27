@@ -14,7 +14,7 @@ struct Settings
 {
     int mode;
     int effectMode;
-    int reserved2;
+    int superSawMode;
     int reserved3;
     int reserved4;
     int reserved5;
@@ -25,7 +25,7 @@ struct Settings
     Settings()
     : mode(0),
       effectMode(0),
-      reserved2(0),
+      superSawMode(0),
       reserved3(0),
       reserved4(0),
       reserved5(0),
@@ -49,7 +49,7 @@ class SettingsManager
                  "%03d;%03d;%03d;%03d;%03d;%03d;%03d;%03d",
                  s.mode,
                  s.effectMode,
-                 s.reserved2,
+                 s.superSawMode,
                  s.reserved3,
                  s.reserved4,
                  s.reserved5,
@@ -74,14 +74,14 @@ class SettingsManager
         if(parsed < 8)
             return false;
 
-        out.mode       = vals[0];
-        out.effectMode = vals[1];
-        out.reserved2  = vals[2];
-        out.reserved3  = vals[3];
-        out.reserved4  = vals[4];
-        out.reserved5  = vals[5];
-        out.reserved6  = vals[6];
-        out.reserved7  = vals[7];
+        out.mode         = vals[0];
+        out.effectMode   = vals[1];
+        out.superSawMode = vals[2];
+        out.reserved3    = vals[3];
+        out.reserved4    = vals[4];
+        out.reserved5    = vals[5];
+        out.reserved6    = vals[6];
+        out.reserved7    = vals[7];
 
         return true;
     }

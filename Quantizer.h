@@ -29,11 +29,11 @@ class Quantizer : public IModuleMode
     {
         KNOB_OFFSET = CV_1,
         KNOB_SCALE,
-        KNOB_3,
+        KNOB_ROOT_OFFSET,
         KNOB_4,
         CV_VOCT_IN,
-        CV_2,
-        CV_3,
+        CV_SCALE,
+        CV_ROOT_OFFSET,
         CV_4
     };
     Quantizer();
@@ -43,5 +43,5 @@ class Quantizer : public IModuleMode
     void DacCallback(uint16_t **output, size_t size) override;
 
   private:
-    float GetNearestNote(const Scale &scale, float note);
+    float GetNearestNote(const Scale &scale, float note, int rootOffset);
 };
