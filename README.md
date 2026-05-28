@@ -189,3 +189,4 @@ This provides a simple envelope follower. Envelope params are preset with good "
 
 - This repo expects libDaisy and DaisySP to be in the root directory.
 - Due to SRAM space limitations, I had to switch to set `SHIFT_BUFFER_SIZE` to `8192` in DaisySP's pitchshifter.h and `DSY_REVERBSC_MAX_SIZE` to `70000` in reverbsc.h
+- This doesn't fit on the internal flash of the Patch SM. Run `make program-boot` to flash the bootloader, then press RESET and then BOOT to load this code into the QSPI region.

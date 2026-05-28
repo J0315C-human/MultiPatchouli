@@ -16,6 +16,8 @@ Quantizer.cpp
 LIBDAISY_DIR = ./libDaisy/
 DAISYSP_DIR = ./DaisySP/
 
+# Tell it to use the bootloader and QSPI
+APP_TYPE = BOOT_QSPI
 
 # Core location, and generic Makefile.
 USE_FATFS = 1
