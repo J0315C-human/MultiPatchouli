@@ -68,7 +68,8 @@ void SuperSaw::DacCallback(uint16_t **output, size_t size)
 
     // Set detuning variables
     float detune_amt = GetCombinedKnobCv(CV_2, CV_6);
-    detune_incr      = (0.2 * mid_freq * detune_amt) / (n_extra_voices / 2);
+    detune_amt       = fmap(detune_amt, 0.f, 1.f, Mapping::EXP);
+    detune_incr      = (0.5 * mid_freq * detune_amt) / (n_extra_voices / 2);
 
     // fudgy adjust for percieved loss of volume when adding voices,
     // and for scaled down detuned voices.

@@ -4,13 +4,14 @@ Firmware for the Daisy Patch.Init() with multiple "module modes" with different 
 
 ### Selecting Mode
 
-Long-Press button B7 to cycle between the modes. The LED will blink a number of times indicating which selection you're on.
+Long-Press button B7 to cycle between the modes. The LED will blink a number of times indicating which selection you're on. When the module turns on, the current mode will be indicated as well.
 
-1. "GateKeeper" mode
-2. "SuperSaw" mode
-3. Reverb mode
-4. VCA Utility
-5. Envelope Follower    
+1. SuperSaw
+2. Multi FX
+3. VCA Utility
+4. Envelope Follower    
+5. Quantizer
+6. GateKeeper
 
 ---
 
@@ -41,7 +42,7 @@ Logic to choose whether or not to "let" triggers through. Also provides a nice w
 **Todo:**
 - Make audio out 1 duck audio based on the trigger and an envelope?
 - Apply same envelope to audio out 2, but only as a positive multiplier
-- OR, audio in/out could just be an average reverb
+- OR, audio in/out could just be a basic reverb
 
 ---
 
@@ -51,7 +52,7 @@ This is just the TripleSaw example from the Daisy repo, ported over to fit into 
 
 **Inputs:**
 - `CV_1`: Tuning
-- `CV_2` + `CV_6`: Detune amt (goes up to 10%!)
+- `CV_2` + `CV_6`: Detune amt (exponential, goes up to 50%!)
 - `CV_3` + `CV_7`: Num extra voices (rounds to 0, 2, 4, 6, or 8)
 - `CV_4` + `CV_8`: amt to scale down detuned voices
 - `CV_5`: v/oct input
@@ -62,26 +63,37 @@ This is just the TripleSaw example from the Daisy repo, ported over to fit into 
 - `audio L`: left channel out
 - `audio R`: right channel out
 
+**Memory:**
+- Waveform mode is saved to SD
+
 **Added layers:**
 - Mini GateKeeper (see below)
 - Mini Envelope Follower (see below)
 
 ---
 
-### Reverb
+### Multi FX
 
-This is a basic reverb.
+This is an effects mode with a basic Reverb, Pitch Shifter, and Bit Crusher.
 
 **Inputs:**
-- `CV_1` + `CV_5`: Time
-- `CV_2` + `CV_6`: Damping
-- `CV_3` + `CV_7`: Dry Level
-- `CV_4` + `CV_8`: Send Level
+- `CV_1` + `CV_5`: Param 1
+- `CV_2` + `CV_6`: Param 2
+- `CV_3` + `CV_7`: Param 3
+- `CV_4` + `CV_8`: Param 4
+- Params in...
+    - Reverb mode: `Time, Damping, DryLevel, SendLevel `
+    - Pitch Shift mode: `LeftPitch, RightPitch, DryLevel, WetLevel`
+    - Bitcrush mode: `BitDepth, CrushRate, DryLevel, WetLevel`
 - `audio R/L`: stereo audio input
-- `CV_OUT_1`: envelope follower of wet effect signal
+- `B7`: Switches between Effect Type
 
 **Outputs:**
 - `audio R/L`: stereo audio output
+- `CV_OUT_1`: envelope follower of wet effect signal
+
+**Memory:**
+- Effect mode is saved to SD
 
 **Added layers:**
 - Mini GateKeeper (see below)
@@ -147,6 +159,31 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 
 ---
 
+### Quantizer
+
+CV Quantizer with a bunch of preset chord types in a somewhat arbitrary order.
+
+**Inputs:**
+- `CV_1` + `CV_5`: V/oct input
+- `CV_2` + `CV_6`: Chord select
+- `CV_3` + `CV_7`: Root offset (changes what "key" it thinks you're quantizing to)
+
+**Outputs:**
+- `CV_OUT_1` and LED: V/oct output
+
+**Unused:**
+- Button `B7`
+- Switch `B8`
+- `CV_4` + `CV_8`
+- gate ins/outs
+- audio ins/outs
+
+**Todo:**
+- Trigger inputs to change chord?
+- More musical way of selecting chord? 
+
+---
+
 ### Mini Gatekeeper (Layer Only)
 
 This is a mini version of the Gatekeeper, that just splits the triggers 2/3 and 1/3 randomly. The two trigger ins are ANDed together before gatekeeping. Note: this isn't its own mode, but is layered on top of some other modes that had the gate ins/outs free.
@@ -175,7 +212,6 @@ This provides a simple envelope follower. Envelope params are preset with good "
 
 ### Other Plans for Future...
 
-- Save current Mode when switching
 - Quantizer w/ "new chord" trigger
 - Pitch shift/Granular Processor
 - EG - use Basic Example
@@ -189,4 +225,9 @@ This provides a simple envelope follower. Envelope params are preset with good "
 
 - This repo expects libDaisy and DaisySP to be in the root directory.
 - Due to SRAM space limitations, I had to switch to set `SHIFT_BUFFER_SIZE` to `8192` in DaisySP's pitchshifter.h and `DSY_REVERBSC_MAX_SIZE` to `70000` in reverbsc.h
-- This doesn't fit on the internal flash of the Patch SM. Run `make program-boot` to flash the bootloader, then press RESET and then BOOT to load this code into the QSPI region.
+- An SD card is needed to save settings.
+- This doesn't fit on the internal flash of the Patch SM, so the flash sequence is:
+    -   Enter DFU mode by holding `boot` then `reset`, then releasing `reset` then `boot`
+    -   Run `make program-boot` to flash the bootloader
+    -   press+release `reset` then press+release `boot`
+    -   `build_and_program_dfu` will now load this code into the QSPI region.
