@@ -134,7 +134,7 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 
 ### Envelope Follower
 
-This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipolar CV VCA.
+This is an envelope follower for the left input and an auto-ducker for the right input (ducking the envelope from the left). CV output is the envelope, with some parameters for attack/release and scaling.
 
 **Inputs:**a
 - `audio L`: audio input for follower
