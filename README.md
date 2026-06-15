@@ -74,7 +74,7 @@ This is just the TripleSaw example from the Daisy repo, ported over to fit into 
 
 ### Multi FX
 
-This is an effects mode with a basic Reverb, Pitch Shifter, and Bit Crusher.
+This is an effects mode with a basic Reverb, Delay, Pitch Shifter, and Bit Crusher.
 
 **Inputs:**
 - `CV_1` + `CV_5`: Param 1
@@ -82,7 +82,8 @@ This is an effects mode with a basic Reverb, Pitch Shifter, and Bit Crusher.
 - `CV_3` + `CV_7`: Param 3
 - `CV_4` + `CV_8`: Param 4
 - Params in...
-    - Reverb mode: `Time, Damping, DryLevel, SendLevel `
+    - Reverb mode: `Time, Damping, DryLevel, SendLevel`
+    - Delay mode: `Time, Feedback, DryLevel, SendLevel`
     - Pitch Shift mode: `LeftPitch, RightPitch, DryLevel, WetLevel`
     - Bitcrush mode: `BitDepth, CrushRate, DryLevel, WetLevel`
 - `audio R/L`: stereo audio input

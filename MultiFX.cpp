@@ -6,6 +6,12 @@ extern DaisyPatchSM patch;
 extern Settings     settings;
 extern uint16_t     CV_OUT_LOWPRIORITY;
 
+// Set max delay time to 0.75 of samplerate.
+#define MAX_DELAY static_cast<size_t>(48000 * 2.5f)
+
+static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS dell;
+static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delr;
+
 MultiFX::MultiFX() {}
 MultiFX::~MultiFX() {}
 
@@ -18,6 +24,13 @@ void MultiFX::Init()
     bitcrushR.Init(patch.AudioSampleRate());
     ef.Init();
     ef.SetAttackRelease(ENV_ATT, ENV_REL);
+
+    // delay stuff
+    dell.Init();
+    delr.Init();
+    delay_current = delay_target = patch.AudioSampleRate() * 0.75f;
+    dell.SetDelay(delay_current);
+    delr.SetDelay(delay_current);
 }
 
 void MultiFX::DacCallback(uint16_t **output, size_t size)
@@ -41,6 +54,15 @@ void MultiFX::DacCallback(uint16_t **output, size_t size)
 
             reverb.SetFeedback(DSY_CLAMP(time, 0.001f, 0.99f));
             reverb.SetLpFreq(DSY_CLAMP(damp, 500.f, 22000.f));
+            break;
+        }
+        case EffectMode::Delay:
+        {
+            delay_target   = fmap(param1,
+                                  patch.AudioSampleRate() * 0.1f,
+                                  MAX_DELAY,
+                                  Mapping::LOG);
+            delay_feedback = DSY_CLAMP(param2, 0.f, 1.f);
             break;
         }
         case EffectMode::PitchShift:
@@ -79,6 +101,21 @@ void MultiFX::DacCallback(uint16_t **output, size_t size)
         = VoltageToCvValue(cheapTanh(ef.Value() * ENV_SCALE) * 5.f);
 }
 
+void MultiFX::GetDelaySample(float &outl, float &outr, float inl, float inr)
+{
+    fonepole(delay_current, delay_target, .00007f);
+    delr.SetDelay(delay_current);
+    dell.SetDelay(delay_current);
+    outl = dell.Read();
+    outr = delr.Read();
+
+    dell.Write((delay_feedback * outl) + inl);
+    outl = (delay_feedback * outl) + ((1.0f - delay_feedback) * inl);
+
+    delr.Write((delay_feedback * outr) + inr);
+    outr = (delay_feedback * outr) + ((1.0f - delay_feedback) * inr);
+}
+
 void MultiFX::AudioCallback(AudioHandle::InputBuffer  in,
                             AudioHandle::OutputBuffer out,
                             size_t                    size)
@@ -95,11 +132,18 @@ void MultiFX::AudioCallback(AudioHandle::InputBuffer  in,
         {
             case EffectMode::Reverb:
             {
-                // sends is scaled by the send param
-
+                // sends scaled by the send param
                 sendl *= send_level;
                 sendr *= send_level;
                 reverb.Process(sendl, sendr, &wetl, &wetr);
+                break;
+            }
+            case EffectMode::Delay:
+            {
+                // sends scaled by the send param
+                sendl *= send_level;
+                sendr *= send_level;
+                GetDelaySample(wetl, wetr, sendl, sendr);
                 break;
             }
             case EffectMode::PitchShift:

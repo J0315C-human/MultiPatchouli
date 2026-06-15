@@ -6,7 +6,7 @@
 class MultiFX : public IModuleMode
 {
   public:
-    static constexpr int NUM_FX_MODES = 3;
+    static constexpr int NUM_FX_MODES = 4;
 
     MultiFX();
     ~MultiFX();
@@ -18,11 +18,13 @@ class MultiFX : public IModuleMode
     void AudioCallback(AudioHandle::InputBuffer  in,
                        AudioHandle::OutputBuffer out,
                        size_t                    size) override;
+    void GetDelaySample(float &outl, float &outr, float inl, float inr);
 
   private:
     enum EffectMode
     {
         Reverb,
+        Delay,
         PitchShift,
         Crush
     };
@@ -34,4 +36,7 @@ class MultiFX : public IModuleMode
     _EnvFollower ef;
     float        dry_level;
     float        send_level;
+    float        delay_current;
+    float        delay_target;
+    float        delay_feedback;
 };
