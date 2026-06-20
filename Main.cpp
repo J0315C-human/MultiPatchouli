@@ -2,6 +2,7 @@
 #include "daisysp.h"
 #include "GateKeeper.h"
 #include "SuperSaw.h"
+#include "ADSREnv.h"
 #include "Blinker.h"
 #include "MultiFX.h"
 #include "VCAUtility.h"
@@ -21,7 +22,7 @@ Switch       toggle;
 Switch       button7;
 Blinker      blinker;
 
-constexpr int NUM_MODES = 6;
+constexpr int NUM_MODES = 7;
 
 // MODE ORDER:
 enum GlobalMode
@@ -30,6 +31,7 @@ enum GlobalMode
     MULTIFX,
     VCAUTILITY,
     ENVFOLLOWER,
+    ADSR,
     QUANTIZER,
     GATEKEEPER,
 };
@@ -40,6 +42,7 @@ MultiFX     multiFX;
 VCAUtility  vcaUtility;
 Quantizer   quantizer;
 EnvFollower envFollower;
+ADSREnv     adsrEnv;
 
 // "layered on top of" other modes:
 MiniGateKeeper  miniGateKeeper;
@@ -96,6 +99,11 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
         case GlobalMode::QUANTIZER:
         {
             quantizer.AudioCallback(in, out, size);
+            break;
+        }
+        case GlobalMode::ADSR:
+        {
+            adsrEnv.AudioCallback(in, out, size);
             break;
         }
     }
@@ -166,6 +174,11 @@ void MainDacCallback(uint16_t **output, size_t size)
             quantizer.DacCallback(output, size);
             break;
         }
+        case GlobalMode::ADSR:
+        {
+            adsrEnv.DacCallback(output, size);
+            break;
+        }
     }
 
     // set LED and cv out value, giving "Blinker" higher priority
@@ -202,6 +215,7 @@ int main(void)
     miniGateKeeper.Init();
     miniEnvFollower.Init();
     quantizer.Init();
+    adsrEnv.Init();
 
     // start patch stuff
     patch.StartAudio(MainAudioCallback);

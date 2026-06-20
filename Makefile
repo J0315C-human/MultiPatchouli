@@ -10,6 +10,7 @@ SuperSaw.cpp \
 MultiFX.cpp \
 VCAUtility.cpp \
 EnvFollower.cpp \
+ADSREnv.cpp \
 Quantizer.cpp
 
 # Library Locations
