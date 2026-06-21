@@ -212,16 +212,22 @@ Simple ADSR Envelope. The audio outputs either apply it as a VCA (left) or "duck
 
 ### Quantizer
 
-CV Quantizer with a bunch of preset scale types in a somewhat arbitrary 2d arrangement.
+CV Quantizer with a bunch of preset chord changes in a somewhat arbitrary 3d arrangement.
+
+There are 4 chord "pages", each a 3x3 grid of chords. The controls move around on the current page, trigger input "turns" the page.
+
+So from every chord, you have between 3 and 4 chords you can switch to depending on what input you change. More if you count the root offset.
 
 **Inputs:**
 
 - `CV_1` + `CV_5`: V/oct input
-- `CV_2` + `CV_6`: scale select X
-- `CV_3` + `CV_7`: scale select Y
-- `CV_4` + `CV_8`: Root offset (changes what "key" it thinks you're quantizing to)
+- `CV_2` + `CV_6`: chord select X axis
+- `CV_3` + `CV_7`: Root offset (changes what "key" it thinks you're quantizing to)
+- `CV_4` + `CV_8`: chord select Y axis
+- `Button B7`: go to next chord page
 - `Toggle B8`: when down, constantly re-quantize and ignore trigger
 - `gate_in_1`: trigger to re-quantize
+- `gate_in_2`: trigger to change chord page
 
 **Outputs:**
 
@@ -231,10 +237,7 @@ CV Quantizer with a bunch of preset scale types in a somewhat arbitrary 2d arran
 
 **Unused:**
 
-- Button `B7`
-- `gate_in_2`
 - audio ins/outs
-
 
 ---
 

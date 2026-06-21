@@ -171,6 +171,15 @@ void MainDacCallback(uint16_t **output, size_t size)
         }
         case GlobalMode::QUANTIZER:
         {
+            // short press: next "chord page"
+            if(btnShortPress.ProcessAndCheckTrigger())
+            {
+                settings.quantizePage
+                    = (settings.quantizePage + 1) % Quantizer::NUM_CHORD_PAGES;
+                shouldSave             = true;
+                quantizer.curChordPage = settings.quantizePage;
+            }
+
             quantizer.DacCallback(output, size);
             break;
         }

@@ -32,19 +32,21 @@ class Scale
 class Quantizer : public IModuleMode
 {
   public:
+    static constexpr int   NUM_CHORD_PAGES       = 4;
     static constexpr int   NOTE_DEBOUNCE_SAMPLES = 100;
     static constexpr float MAX_VOUT              = 5.f;
+    int                    curChordPage;
 
     enum
     {
         KNOB_OFFSET = CV_1,
         KNOB_SCALEA,
-        KNOB_SCALEB,
         KNOB_ROOT_OFFSET,
+        KNOB_SCALEB,
         CV_VOCT_IN,
         CV_SCALEA,
-        CV_SCALEB,
-        CV_ROOT_OFFSET
+        CV_ROOT_OFFSET,
+        CV_SCALEB
     };
     Quantizer();
     ~Quantizer();
@@ -58,11 +60,13 @@ class Quantizer : public IModuleMode
   private:
     float GetNearestNote(const Scale &scale, float note, int rootOffset);
     bool  GetNewNoteTrigger();
+    bool  GetNewChordPageTrigger();
 
     GateTool newNoteGate;
     GateTool melodicDirectionGate;
     float    curCvOut;
-    bool     gateOn;
+    bool     noteGateOn;
+    bool     chordPageGateOn;
     bool     melodyIsAscending;
     int      samplesSinceLastNote;
 };

@@ -15,7 +15,7 @@ struct Settings
     int mode;
     int effectMode;
     int superSawMode;
-    int reserved3;
+    int quantizePage;
     int reserved4;
     int reserved5;
     int reserved6;
@@ -26,7 +26,7 @@ struct Settings
     : mode(0),
       effectMode(0),
       superSawMode(0),
-      reserved3(0),
+      quantizePage(0),
       reserved4(0),
       reserved5(0),
       reserved6(0),
@@ -50,7 +50,7 @@ class SettingsManager
                  s.mode,
                  s.effectMode,
                  s.superSawMode,
-                 s.reserved3,
+                 s.quantizePage,
                  s.reserved4,
                  s.reserved5,
                  s.reserved6,
@@ -77,7 +77,7 @@ class SettingsManager
         out.mode         = vals[0];
         out.effectMode   = vals[1];
         out.superSawMode = vals[2];
-        out.reserved3    = vals[3];
+        out.quantizePage = vals[3];
         out.reserved4    = vals[4];
         out.reserved5    = vals[5];
         out.reserved6    = vals[6];

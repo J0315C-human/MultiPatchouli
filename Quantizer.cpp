@@ -1,71 +1,97 @@
 #include "Quantizer.h"
+#include "SettingsManager.h"
 
 extern DaisyPatchSM patch;
 extern Switch       toggle;
 extern uint16_t     CV_OUT_LOWPRIORITY;
 extern uint16_t     LED_OUT_LOWPRIORITY;
+extern Settings     settings;
+extern bool         shouldSave;
 
-static const Scale SC_CHROM = Scale({0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1});
-static const Scale SC_MAJOR = Scale({0, 2, 2, 1, 2, 2, 2, 1});
-static const Scale SC_MINOR = Scale({0, 2, 1, 2, 2, 1, 2, 2});
-static const Scale SC_HARMONIC_MINOR = Scale({0, 2, 1, 2, 2, 1, 3, 1});
-static const Scale SC_PENTMIN        = Scale({0, 3, 2, 2, 3});
-static const Scale SC_PENTMAJ        = Scale({0, 2, 2, 3, 2});
-static const Scale SC_BLUES          = Scale({0, 3, 2, 1, 1, 3});
-static const Scale SC_WHOLETONE      = Scale({0, 2, 2, 2, 2, 2});
-static const Scale SC_DIMINISHED     = Scale({0, 2, 1, 2, 1, 2, 1, 2});
-static const Scale CH_SUS            = Scale({0, 5, 2});
-static const Scale CH_MAJOR          = Scale({0, 4, 3});
-static const Scale CH_MAJOR7         = Scale({0, 4, 3, 4});
-static const Scale CH_DOMINANT7      = Scale({0, 4, 3, 3});
-static const Scale CH_MINOR          = Scale({0, 3, 4});
-static const Scale CH_MINOR7         = Scale({0, 3, 4, 3});
-static const Scale CH_MINMAJ7         = Scale({0, 3, 4, 4});
-static const Scale CH_DIM7           = Scale({0, 3, 3, 3});
-static const Scale CH_AUG            = Scale({0, 4, 4, 4});
-static const Scale CH_HD7            = Scale({0, 3, 3, 4});
-static const Scale CH_5TH            = Scale({0, 7});
-static const Scale OCTAVE            = Scale({0});
+static const Scale _SUS7    = Scale({0, 5, 2, 3});
+static const Scale _MAJOR   = Scale({0, 4, 3});
+static const Scale _MAJOR7  = Scale({0, 4, 3, 4});
+static const Scale _DOM7    = Scale({0, 4, 3, 3});
+static const Scale _MINOR   = Scale({0, 3, 4});
+static const Scale _MINOR7  = Scale({0, 3, 4, 3});
+static const Scale _MINMAJ7 = Scale({0, 3, 4, 4});
+static const Scale _DIM7    = Scale({0, 3, 3, 3});
+static const Scale _AUG     = Scale({0, 4, 4, 4});
+static const Scale _HD7     = Scale({0, 3, 3, 4});
+static const Scale _5TH     = Scale({0, 7});
 
-
-static const Scale C_MAJOR     = Scale(CH_MAJOR, 0);
-static const Scale D_MINOR7    = Scale(CH_MINOR7, 2);
-static const Scale D_MAJOR     = Scale(CH_MAJOR, 2);
-static const Scale E_MINOR7    = Scale(CH_MINOR7, 4);
-static const Scale E_DOMINANT7 = Scale(CH_DOMINANT7, 4);
-static const Scale F_MAJOR7    = Scale(CH_MAJOR7, 5);
-static const Scale F_MINOR     = Scale(CH_MINOR, 5);
-static const Scale Fs_HD7      = Scale(CH_HD7, 6);
-static const Scale G_MAJOR     = Scale(CH_MAJOR, 7);
-static const Scale G_MINOR7    = Scale(CH_MINOR7, 7);
-static const Scale G_DOMINANT7 = Scale(CH_DOMINANT7, 7);
-static const Scale A_MINOR7    = Scale(CH_MINOR7, 9);
-static const Scale B_HD7       = Scale(CH_HD7, -1);
-static const Scale B_DIM7      = Scale(CH_DIM7, -1);
+// transposed scales
+static const Scale Cs_HD7    = Scale(_HD7, 1);
+static const Scale D_DOM7    = Scale(_DOM7, 2);
+static const Scale D_MINOR   = Scale(_MINOR, 2);
+static const Scale D_MINOR7  = Scale(_MINOR7, 2);
+static const Scale D_MAJOR   = Scale(_MAJOR, 2);
+static const Scale Eb_MINOR7 = Scale(_MINOR7, 3);
+static const Scale Eb_MAJOR  = Scale(_MAJOR, 3);
+static const Scale E_SUS7    = Scale(_SUS7, 4);
+static const Scale E_MINOR   = Scale(_MINOR, 4);
+static const Scale E_MINOR7  = Scale(_MINOR7, 4);
+static const Scale E_DOM7    = Scale(_DOM7, 4);
+static const Scale F_DOM7    = Scale(_DOM7, 5);
+static const Scale F_MAJOR   = Scale(_MAJOR, 5);
+static const Scale F_MAJOR7  = Scale(_MAJOR7, 5);
+static const Scale F_MINOR   = Scale(_MINOR, 5);
+static const Scale F_SUS7    = Scale(_SUS7, 5);
+static const Scale Fs_HD7    = Scale(_HD7, 6);
+static const Scale G_MAJOR   = Scale(_MAJOR, 7);
+static const Scale G_MINOR   = Scale(_MINOR, 7);
+static const Scale G_MINOR7  = Scale(_MINOR7, 7);
+static const Scale G_AUG     = Scale(_AUG, 7);
+static const Scale G_SUS7    = Scale(_SUS7, 7);
+static const Scale G_DOM7    = Scale(_DOM7, 7);
+static const Scale Ab_MAJOR  = Scale(_MAJOR, 8);
+static const Scale A_MINOR   = Scale(_MINOR, 9);
+static const Scale A_MINOR7  = Scale(_MINOR7, 9);
+static const Scale A_HD7     = Scale(_HD7, 9);
+static const Scale Bb_DOM7   = Scale(_DOM7, -2);
+static const Scale Bb_MAJ7   = Scale(_MAJOR7, -2);
+static const Scale B_HD7     = Scale(_HD7, -1);
+static const Scale B_DIM7    = Scale(_DIM7, -1);
 
 // clang-format off
-static const Scale* SCALES[]      = {
-    &E_DOMINANT7,    &A_MINOR7,    &B_DIM7,        
-    &D_MAJOR,       &F_MAJOR7,      &B_HD7,        
-    &A_MINOR7,      &C_MAJOR,       &E_MINOR7,       
-    &Fs_HD7,        &G_DOMINANT7,     &F_MINOR,   
-    &G_MINOR7,      &D_MINOR7,      &G_MAJOR,   
+static const Scale* CHORDS_A[]      = {
+    &B_HD7,     &F_MAJOR,      &E_MINOR,
+    &A_MINOR,   &_MAJOR,       &F_MINOR,
+    &D_DOM7,    &G_MAJOR,      &D_MINOR
+};
+static const Scale* CHORDS_B[]      = {
+    &_MAJOR7,   &F_MINOR,      &Ab_MAJOR,
+    &Cs_HD7,    &Eb_MAJOR,     &G_MINOR,
+    &G_DOM7,    &Bb_DOM7,      &A_HD7
+};
+static const Scale* CHORDS_C[]      = {
+    &_AUG,      &_MAJOR,       &G_SUS7,
+    &D_MINOR7,  &Bb_MAJ7,      &_MINOR7,
+    &G_MINOR7,  &Eb_MINOR7,    &F_DOM7
+};
+static const Scale* CHORDS_D[]      = {
+    &F_SUS7,    &A_MINOR,      &Fs_HD7,
+    &G_MAJOR,   &_SUS7,        &F_DOM7,
+    &E_SUS7,    &D_MINOR,      &G_AUG
 };
 // clang-format on
 
-// these are combined to get a "2d index" into the above structure
-static const int SCALE_X_SIZE = 3;
-static const int SCALE_Y_SIZE = 5;
+// these are combined to get a "3d index" into the above structure
+static const int SCALE_X_SIZE  = 3;
+static const int SCALE_Y_SIZE  = 3;
+static const int SCALE_N_PAGES = 4;
 
 Quantizer::Quantizer() {}
 Quantizer::~Quantizer() {}
 
 void Quantizer::Init()
 {
-    gateOn = false;
+    noteGateOn      = false;
+    chordPageGateOn = false;
     newNoteGate.Init(patch.AudioSampleRate());
     melodicDirectionGate.Init(patch.AudioSampleRate());
     samplesSinceLastNote = 0;
+    curChordPage         = settings.quantizePage;
 }
 
 float Quantizer::GetNearestNote(const Scale& scale, float note, int rootOffset)
@@ -93,15 +119,29 @@ float Quantizer::GetNearestNote(const Scale& scale, float note, int rootOffset)
     return outputSemitone;
 }
 
+bool Quantizer::GetNewChordPageTrigger()
+{
+    bool oldState   = chordPageGateOn;
+    chordPageGateOn = patch.gate_in_2.State();
+    return !oldState && chordPageGateOn;
+}
+
 bool Quantizer::GetNewNoteTrigger()
 {
-    bool oldState = gateOn;
-    gateOn        = patch.gate_in_1.State();
-    return !oldState && gateOn;
+    bool oldState = noteGateOn;
+    noteGateOn    = patch.gate_in_1.State();
+    return !oldState && noteGateOn;
 }
 
 void Quantizer::DacCallback(uint16_t** output, size_t size)
 {
+    if(GetNewChordPageTrigger())
+    {
+        curChordPage          = (curChordPage + 1) % NUM_CHORD_PAGES;
+        settings.quantizePage = curChordPage;
+        shouldSave            = true;
+    }
+
     if((toggle.Pressed()
         && !GetNewNoteTrigger()) // if switch is up, only re-quantize when triggered
        || samplesSinceLastNote < NOTE_DEBOUNCE_SAMPLES)
@@ -116,11 +156,16 @@ void Quantizer::DacCallback(uint16_t** output, size_t size)
         float rootOffsetIn
             = GetCombinedKnobCv(KNOB_ROOT_OFFSET, CV_ROOT_OFFSET);
 
-        // select scale using a "2d" cv selection
+        // select scale using a "3d" cv selection
         int scaleY = (int)fmap(scaleInputA, 0.f, (float)SCALE_Y_SIZE - 0.01f);
         int scaleX = (int)fmap(scaleInputB, 0.f, (float)SCALE_X_SIZE - 0.01f);
 
-        const Scale& scale = *SCALES[scaleY * SCALE_X_SIZE + scaleX];
+        const Scale& scale
+            = curChordPage == 0   ? *CHORDS_A[scaleY * SCALE_X_SIZE + scaleX]
+              : curChordPage == 1 ? *CHORDS_B[scaleY * SCALE_X_SIZE + scaleX]
+              : curChordPage == 2 ? *CHORDS_C[scaleY * SCALE_X_SIZE + scaleX]
+                                  : *CHORDS_D[scaleY * SCALE_X_SIZE + scaleX];
+
 
         int rootOffset = (int)fmap(rootOffsetIn, -6.f, 6.f);
 
