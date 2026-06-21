@@ -24,9 +24,9 @@ Logic to choose whether or not to "let" triggers through. Also provides a nice w
 
 **Inputs:**
 
-- `B8`: combination setting — ORs triggers together (up) or ANDs them (down) before gatekeeping
-- `B9`: trigger/gate input
-- `B10`: trigger/gate input
+- `Toggle B8`: combination setting — ORs triggers together (up) or ANDs them (down) before gatekeeping
+- `game_in_1`: trigger/gate input
+- `gate_in_2`: trigger/gate input
 - `CV_1` + `CV_5`: Weighting of Random vs. Cycle mode (full left is Cycle, right is Random)
 - `CV_2` + `CV_6`: Random density for Random Mode
 - `CV_3` + `CV_7`: Cycle length, ranged 2 to 16 triggers
@@ -62,8 +62,8 @@ This is just the TripleSaw example from the Daisy repo, ported over to fit into 
 - `CV_3` + `CV_7`: Num extra voices (rounds to 0, 2, 4, 6, or 8)
 - `CV_4` + `CV_8`: amt to scale down detuned voices
 - `CV_5`: v/oct input
-- `B7`: Switches between Saw/Square/Tri/Sine
-- `B8`: Up is VCO range, Down is LFO range
+- `Button B7`: Switches between Saw/Square/Tri/Sine
+- `Toggle B8`: Up is VCO range, Down is LFO range
 
 **Outputs:**
 
@@ -97,7 +97,7 @@ This is an effects mode with a basic Reverb, Delay, Pitch Shifter, and Bit Crush
   - Pitch Shift mode: `LeftPitch, RightPitch, DryLevel, WetLevel`
   - Bitcrush mode: `BitDepth, CrushRate, DryLevel, WetLevel`
 - `audio R/L`: stereo audio input
-- `B7`: Switches between Effect Type
+- `Button B7`: Switches between Effect Type
 
 **Outputs:**
 
@@ -114,7 +114,7 @@ This is an effects mode with a basic Reverb, Delay, Pitch Shifter, and Bit Crush
 
 **Unused:**
 
-- Switch `B8`
+- `Toggle B8`
 
 ---
 
@@ -147,7 +147,7 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 
 **Unused:**
 
-- Switch `B8`
+- `Toggle B8`
 
 ---
 
@@ -172,7 +172,7 @@ This is an envelope follower for the left input and an auto-ducker for the right
 
 **Unused:**
 
-- Switch `B8`
+- `Toggle B8`
 - `CV_5` - `CV_8`
 - gate ins/outs
 
@@ -194,9 +194,9 @@ Simple ADSR Envelope. The audio outputs either apply it as a VCA (left) or "duck
 - `CV_4` + `CV_8`: Release time
 - `audio L`: audio input for follower
 - `audio R`: audio input to be ducked
-- `B7`: manual gate input
-- `B8`: when down, envelope is 1/2 size
-- `B9`: gate input
+- `Button B7`: manual gate input
+- `Toggle B8`: when down, envelope is 1/2 size
+- `gate_in_1`: gate input
 
 **Outputs:**
 
@@ -212,31 +212,29 @@ Simple ADSR Envelope. The audio outputs either apply it as a VCA (left) or "duck
 
 ### Quantizer
 
-CV Quantizer with a bunch of preset chord types in a somewhat arbitrary order.
+CV Quantizer with a bunch of preset scale types in a somewhat arbitrary 2d arrangement.
 
 **Inputs:**
 
 - `CV_1` + `CV_5`: V/oct input
-- `CV_2` + `CV_6`: Chord select
-- `CV_3` + `CV_7`: Root offset (changes what "key" it thinks you're quantizing to)
+- `CV_2` + `CV_6`: scale select X
+- `CV_3` + `CV_7`: scale select Y
+- `CV_4` + `CV_8`: Root offset (changes what "key" it thinks you're quantizing to)
+- `Toggle B8`: when down, constantly re-quantize and ignore trigger
+- `gate_in_1`: trigger to re-quantize
 
 **Outputs:**
 
 - `CV_OUT_1` and LED: V/oct output
+- `gate_out_1`: trigger when note changes
+- `gate_out_2`: trigger when melody direction changes - ascending to descending or vice versa
 
 **Unused:**
 
 - Button `B7`
-- Switch `B8`
-- `CV_4` + `CV_8`
-- gate ins/outs
+- `gate_in_2`
 - audio ins/outs
 
-**Todo:**
-
-- Trigger inputs to change chord?
-- Switch to control "allow change key" or "stay in same key"?
-- More musical way of selecting chord?
 
 ---
 
@@ -246,8 +244,8 @@ This is a mini version of the Gatekeeper, that just splits the triggers 2/3 and 
 
 **Inputs:**
 
-- `B10`: trigger/gate input
-- `B9`: trigger/gate input
+- `game_in_1`: trigger/gate input
+- `gate_in_2`: trigger/gate input
 
 **Outputs:**
 
