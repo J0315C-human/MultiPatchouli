@@ -13,15 +13,14 @@ using namespace patch_sm;
 
 struct Settings
 {
-    int  mode;
-    int  effectMode;
-    int  superSawMode;
-    int  quantizePage;
-    int  favoriteMode;
-    int  favoriteSubMode;
-    int  reserved6;
-    int  reserved7;
-    bool shouldSave;
+    int mode;
+    int effectMode;
+    int superSawMode;
+    int quantizePage;
+    int favoriteMode;
+    int favoriteSubMode;
+    int reserved6;
+    int reserved7;
 
     // default values
     Settings()
@@ -32,8 +31,7 @@ struct Settings
       favoriteMode(1),
       favoriteSubMode(0),
       reserved6(0),
-      reserved7(0),
-      shouldSave(false)
+      reserved7(0)
     {
     }
 };

@@ -4,6 +4,7 @@
 
 extern DaisyPatchSM patch;
 extern Settings     settings;
+extern bool         shouldSave;
 extern uint16_t     CV_OUT_LOWPRIORITY;
 
 // Set max delay time to 0.75 of samplerate.
@@ -36,7 +37,7 @@ void MultiFX::Init()
 void MultiFX::SetSubMode(int subMode)
 {
     settings.effectMode = subMode <= NUM_FX_MODES ? subMode : 0;
-    settings.shouldSave = true;
+    shouldSave          = true;
 }
 
 int MultiFX::GetSubMode()
@@ -44,8 +45,9 @@ int MultiFX::GetSubMode()
 
 void MultiFX::OnSubModeButtonPress()
 {
-    settings.superSawMode = (settings.superSawMode + 1) % NUM_FX_MODES;
-    settings.shouldSave   = true;
+    // advance to next effect
+    settings.effectMode = (settings.effectMode + 1) % NUM_FX_MODES;
+    shouldSave          = true;
 }
 
 void MultiFX::DacCallback(uint16_t **output, size_t size)

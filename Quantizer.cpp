@@ -7,6 +7,7 @@ extern Switch       toggle;
 extern uint16_t     CV_OUT_LOWPRIORITY;
 extern uint16_t     LED_OUT_LOWPRIORITY;
 extern Settings     settings;
+extern bool         shouldSave;
 
 static const Scale _SUS7    = Scale({0, 5, 2, 3});
 static const Scale _MAJOR   = Scale({0, 4, 3});
@@ -95,7 +96,7 @@ void Quantizer::Init()
 void Quantizer::AdvanceChordPage()
 {
     settings.quantizePage = (settings.quantizePage + 1) % NUM_CHORD_PAGES;
-    settings.shouldSave   = true;
+    shouldSave            = true;
 }
 
 void Quantizer::OnSubModeButtonPress()
@@ -104,7 +105,7 @@ void Quantizer::OnSubModeButtonPress()
 void Quantizer::SetSubMode(int subMode)
 {
     settings.quantizePage = subMode <= NUM_CHORD_PAGES ? subMode : 0;
-    settings.shouldSave   = true;
+    shouldSave            = true;
 }
 
 int Quantizer::GetSubMode()

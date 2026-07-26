@@ -48,6 +48,7 @@ ButtonPressHelper btnExtraLongPress;
 // global persistent data
 SettingsManager settingsManager;
 Settings        settings;
+volatile bool   shouldSave;
 
 bool ModeHasMiniGatekeeper(int modeIdx)
 {
@@ -88,7 +89,6 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
         miniGateKeeper.AudioCallback(in, out, size);
 
     modeInstance->AudioCallback(in, out, size);
-
 }
 
 void MainDacCallback(uint16_t **output, size_t size)
@@ -104,12 +104,14 @@ void MainDacCallback(uint16_t **output, size_t size)
     {
         u_int8_t newMode = GetBinaryValueOfKnobs();
 
-        if(newMode <= NUM_MODES) // just skip invalid modes
+        if(newMode <= NUM_MODES         // skip invalid modes
+           && newMode != settings.mode) // skip if it's not different
         {
             if(newMode == 0) // special favorite slot
             {
-                settings.mode = settings.favoriteMode;
-                modeInstance->SetSubMode(settings.favoriteSubMode);
+                settings.mode                 = settings.favoriteMode;
+                IModuleMode *favoriteInstance = GetModeInstance(settings.mode);
+                favoriteInstance->SetSubMode(settings.favoriteSubMode);
             }
             else
             {
@@ -117,7 +119,7 @@ void MainDacCallback(uint16_t **output, size_t size)
             }
 
             blinker.Trigger(settings.mode);
-            settings.shouldSave = true;
+            shouldSave = true;
         }
     }
     // extra long press saves favorite
@@ -125,13 +127,14 @@ void MainDacCallback(uint16_t **output, size_t size)
     {
         settings.favoriteMode    = settings.mode;
         settings.favoriteSubMode = modeInstance->GetSubMode();
-        settings.shouldSave      = true;
+        shouldSave               = true;
         // show mode blinker to confirm
         blinker.Trigger(settings.mode);
     }
-
-    if(btnShortPress.ProcessAndCheckTrigger())
+    else if(btnShortPress.ProcessAndCheckTrigger())
+    {
         modeInstance->OnSubModeButtonPress();
+    }
 
     if(ModeHasMiniEnvFollower(settings.mode))
         miniEnvFollower.DacCallback(output, size);
@@ -186,10 +189,10 @@ int main(void)
 
     while(1)
     {
-        if(settings.shouldSave)
+        if(shouldSave)
         {
+            shouldSave = false;
             settingsManager.Save(settings);
-            settings.shouldSave = false;
         }
     }
 }

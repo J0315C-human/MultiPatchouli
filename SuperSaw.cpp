@@ -4,6 +4,7 @@
 extern DaisyPatchSM patch;
 extern Switch       toggle;
 extern Settings     settings;
+extern bool         shouldSave;
 
 SuperSaw::SuperSaw() {}
 SuperSaw::~SuperSaw() {}
@@ -25,7 +26,7 @@ void SuperSaw::Init()
 void SuperSaw::SetSubMode(int subMode)
 {
     settings.superSawMode = subMode <= NUM_SUPERSAW_MODES ? subMode : 0;
-    settings.shouldSave   = true;
+    shouldSave            = true;
     UpdateWaveForm();
 }
 
@@ -35,7 +36,7 @@ int SuperSaw::GetSubMode()
 void SuperSaw::OnSubModeButtonPress()
 {
     settings.superSawMode = (settings.superSawMode + 1) % NUM_SUPERSAW_MODES;
-    settings.shouldSave   = true;
+    shouldSave            = true;
     UpdateWaveForm();
 }
 
