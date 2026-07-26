@@ -27,7 +27,7 @@ constexpr int NUM_MODES = 7;
 // MODE ORDER:
 enum GlobalMode
 {
-    SUPERSAW,
+    SUPERSAW = 1,
     MULTIFX,
     VCAUTILITY,
     ENVFOLLOWER,
@@ -36,6 +36,7 @@ enum GlobalMode
     GATEKEEPER,
 };
 
+// mode instances
 GateKeeper  gateKeeper;
 SuperSaw    superSaw;
 MultiFX     multiFX;
@@ -52,23 +53,25 @@ MiniEnvFollower miniEnvFollower;
 uint16_t LED_OUT_LOWPRIORITY;
 uint16_t CV_OUT_LOWPRIORITY;
 
-// Helpers / global data
-ButtonPressHelper btnLongPress;
+// button helpers
 ButtonPressHelper btnShortPress;
-SettingsManager   settingsManager;
-Settings          settings;
+ButtonPressHelper btnLongPress;
+ButtonPressHelper btnExtraLongPress;
 
-bool CurrentModeHasMiniGatekeeper()
+// global persistent data
+SettingsManager settingsManager;
+Settings        settings;
+
+bool ModeHasMiniGatekeeper(int modeIdx)
 {
-    return settings.mode == GlobalMode::SUPERSAW
-           || settings.mode == GlobalMode::MULTIFX
-           || settings.mode == GlobalMode::VCAUTILITY;
+    return modeIdx == GlobalMode::SUPERSAW || modeIdx == GlobalMode::MULTIFX
+           || modeIdx == GlobalMode::VCAUTILITY;
 }
 
-bool CurrentModeHasMiniEnvFollower()
-{ return settings.mode == GlobalMode::SUPERSAW; }
+bool ModeHasMiniEnvFollower(int modeIdx)
+{ return modeIdx == GlobalMode::SUPERSAW; }
 
-IModuleMode *GetCurrentModeInstance()
+IModuleMode *GetModeInstance(int modeIdx)
 {
     switch(settings.mode)
     {
@@ -78,6 +81,7 @@ IModuleMode *GetCurrentModeInstance()
         case GlobalMode::ENVFOLLOWER: return &envFollower;
         case GlobalMode::QUANTIZER: return &quantizer;
         case GlobalMode::ADSR: return &adsrEnv;
+        case GlobalMode::MULTIFX: return &multiFX;
         default: return &multiFX;
     }
 }
@@ -88,14 +92,14 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
 {
     patch.ProcessAllControls();
 
-    IModuleMode *modeInstance = GetCurrentModeInstance();
+    IModuleMode *modeInstance = GetModeInstance(settings.mode);
 
     modeInstance->AudioCallback(in, out, size);
 
-    if(CurrentModeHasMiniEnvFollower())
+    if(ModeHasMiniEnvFollower(settings.mode))
         miniEnvFollower.AudioCallback(in, out, size);
 
-    if(CurrentModeHasMiniGatekeeper())
+    if(ModeHasMiniGatekeeper(settings.mode))
         miniGateKeeper.AudioCallback(in, out, size);
 }
 
@@ -105,25 +109,46 @@ void MainDacCallback(uint16_t **output, size_t size)
     toggle.Debounce();
     button7.Debounce();
 
+    IModuleMode *modeInstance = GetModeInstance(settings.mode);
+
     // long press changes mode
     if(btnLongPress.ProcessAndCheckTrigger())
     {
-        settings.mode = (settings.mode + 1) % NUM_MODES;
-        blinker.Trigger(settings.mode + 1);
-        settings.shouldSave = true;
+        u_int8_t newMode = GetBinaryValueOfKnobs();
+
+        if(newMode <= NUM_MODES) // just skip invalid modes
+        {
+            if(newMode == 0) // special favorite slot
+            {
+                settings.mode = settings.favoriteMode;
+                modeInstance->SetSubMode(settings.favoriteSubMode);
+            }
+            else
+            {
+                settings.mode = newMode;
+            }
+
+            blinker.Trigger(settings.mode);
+            settings.shouldSave = true;
+        }
+    }
+    // extra long press saves favorite
+    else if(btnExtraLongPress.ProcessAndCheckTrigger())
+    {
+        settings.favoriteMode    = settings.mode;
+        settings.favoriteSubMode = modeInstance->GetSubMode();
+        settings.shouldSave      = true;
     }
 
-    IModuleMode *modeInstance = GetCurrentModeInstance();
-
     if(btnShortPress.ProcessAndCheckTrigger())
-        modeInstance->OnSubmodeButtonPress();
+        modeInstance->OnSubModeButtonPress();
 
     modeInstance->DacCallback(output, size);
 
-    if(CurrentModeHasMiniEnvFollower())
+    if(ModeHasMiniEnvFollower(settings.mode))
         miniEnvFollower.DacCallback(output, size);
 
-    if(CurrentModeHasMiniGatekeeper())
+    if(ModeHasMiniGatekeeper(settings.mode))
         miniGateKeeper.DacCallback(output, size);
 
     // set LED and cv out value, giving "Blinker" higher priority
@@ -144,30 +169,30 @@ int main(void)
     toggle.Init(patch.B8);
     button7.Init(patch.B7);
     blinker.Init(48000); // MAGIC NUM
-    btnLongPress.Init(ButtonPressHelper::LONG_PRESS);
     btnShortPress.Init(ButtonPressHelper::SHORT_PRESS);
+    btnLongPress.Init(ButtonPressHelper::LONG_PRESS);
+    btnExtraLongPress.Init(ButtonPressHelper::EXTRA_LONG_PRESS);
 
     // load saved settings or defaults
     settingsManager.Init();
     settingsManager.Load(settings);
 
-    // Init the Module mode classes
-    gateKeeper.Init();
-    superSaw.Init();
-    multiFX.Init();
-    vcaUtility.Init();
-    envFollower.Init();
+    // Init the mode instances
+    for(int i = 1; i <= NUM_MODES; i++)
+    {
+        IModuleMode *modeInstance = GetModeInstance(i);
+        modeInstance->Init();
+    }
+    // Init mini mode layers
     miniGateKeeper.Init();
     miniEnvFollower.Init();
-    quantizer.Init();
-    adsrEnv.Init();
 
     // start patch stuff
     patch.StartAudio(MainAudioCallback);
     patch.StartDac(MainDacCallback);
 
     // show current mode
-    blinker.Trigger(settings.mode + 1);
+    blinker.Trigger(settings.mode);
 
     while(1)
     {

@@ -22,7 +22,17 @@ void SuperSaw::Init()
     UpdateWaveForm();
 }
 
-void SuperSaw::OnSubmodeButtonPress()
+void SuperSaw::SetSubMode(int subMode)
+{
+    settings.superSawMode = subMode <= NUM_SUPERSAW_MODES ? subMode : 0;
+    settings.shouldSave   = true;
+    UpdateWaveForm();
+}
+
+int SuperSaw::GetSubMode()
+{ return settings.superSawMode; }
+
+void SuperSaw::OnSubModeButtonPress()
 {
     settings.superSawMode = (settings.superSawMode + 1) % NUM_SUPERSAW_MODES;
     settings.shouldSave   = true;

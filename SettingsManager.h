@@ -16,20 +16,20 @@ struct Settings
     int  effectMode;
     int  superSawMode;
     int  quantizePage;
-    int  reserved4;
-    int  reserved5;
+    int  favoriteMode;
+    int  favoriteSubMode;
     int  reserved6;
     int  reserved7;
     bool shouldSave;
 
     // default values
     Settings()
-    : mode(0),
+    : mode(1),
       effectMode(0),
       superSawMode(0),
       quantizePage(0),
-      reserved4(0),
-      reserved5(0),
+      favoriteMode(1),
+      favoriteSubMode(0),
       reserved6(0),
       reserved7(0),
       shouldSave(false)
@@ -53,8 +53,8 @@ class SettingsManager
                  s.effectMode,
                  s.superSawMode,
                  s.quantizePage,
-                 s.reserved4,
-                 s.reserved5,
+                 s.favoriteMode,
+                 s.favoriteSubMode,
                  s.reserved6,
                  s.reserved7);
     }
@@ -76,15 +76,19 @@ class SettingsManager
         if(parsed < 8)
             return false;
 
-        out.mode         = vals[0];
-        out.effectMode   = vals[1];
-        out.superSawMode = vals[2];
-        out.quantizePage = vals[3];
-        out.reserved4    = vals[4];
-        out.reserved5    = vals[5];
-        out.reserved6    = vals[6];
-        out.reserved7    = vals[7];
+        out.mode            = vals[0];
+        out.effectMode      = vals[1];
+        out.superSawMode    = vals[2];
+        out.quantizePage    = vals[3];
+        out.favoriteMode    = vals[4];
+        out.favoriteSubMode = vals[5];
+        out.reserved6       = vals[6];
+        out.reserved7       = vals[7];
 
+        if(out.mode < 1 || out.mode > NUM_MODES)
+            out.mode = 1;
+        if(out.favoriteMode < 1 || out.favoriteMode > NUM_MODES)
+            out.favoriteMode = 1;
         return true;
     }
 

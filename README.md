@@ -4,8 +4,11 @@ Firmware for the Daisy Patch.Init() with multiple "module modes" with different 
 
 ### Selecting Mode
 
-Long-Press button B7 to cycle between the modes. The LED will blink a number of times indicating which selection you're on. When the module turns on, the current mode will be indicated as well.
+When the module turns on, the mode will be indicated by blinking.
 
+To change modes, while holding button B7, set the 4 knobs to a binary representation of the number corresponding to the mode . When you release the button, the LED will blink a number of times indicating which selection you're on.
+
+0. ["Favorite" slot]
 1. SuperSaw
 2. Multi FX
 3. VCA Utility
@@ -13,6 +16,14 @@ Long-Press button B7 to cycle between the modes. The LED will blink a number of 
 5. ADSR Envelope
 6. Quantizer
 7. GateKeeper
+
+A knob value past 12 o'clock is treated as a 1. The knobs are greatest-to-lowest bit, from top left to bottom right. So for instance, to select mode 5, you'd set them "left-right-left-right", or 0101, which is 5 in binary.
+
+(Yeah I know, it's absurd, but we don't have a lot to work with interface-wise)
+
+To save a favorite (which just sets it as mode 0), press for 5+ seconds and release. After that point, selecting mode 0 will recall the saved mode. Some modes have submodes that are cycled by short-pressing the button; these are also recalled in mode 0, so you could favorite "Multi FX - BitCrusher" for instance.
+
+When a mode starts, its submode is whatever was last used in that mode, with the exception of slot #0, which recalls the favorited setting.
 
 ---
 
@@ -53,16 +64,16 @@ Logic to choose whether or not to "let" triggers through. Also provides a nice w
 
 ### SuperSaw
 
-This is just the TripleSaw example from the Daisy repo, ported over to fit into my code. I also added CV controls for number of extra voices, which goes from 2 up to 8, and "voice scaling" which makes the more detuned voices slightly quieter relative to the central "main" frequency. Also added a triangle option.
+SuperSaw voice with CV controls for number of extra voices, which goes from 2 up to 8, and "voice scaling" which makes the more detuned voices slightly quieter relative to the central "main" frequency. The submode has multiple waveform options.
 
 **Inputs:**
 
 - `CV_1`: Tuning
 - `CV_2` + `CV_6`: Detune amt (exponential, goes up to 50%!)
 - `CV_3` + `CV_7`: Num extra voices (rounds to 0, 2, 4, 6, or 8)
-- `CV_4` + `CV_8`: amt to scale down detuned voices
+- `CV_4` + `CV_8`: amt to scale down detuned voice loudness
 - `CV_5`: v/oct input
-- `Button B7`: Switches between Saw/Square/Tri/Sine
+- `Button B7 / SubMode`: Switches between Saw/Square/Tri/Sine
 - `Toggle B8`: Up is VCO range, Down is LFO range
 
 **Outputs:**
@@ -92,12 +103,12 @@ This is an effects mode with a basic Reverb, Delay, Pitch Shifter, and Bit Crush
 - `CV_3` + `CV_7`: Param 3
 - `CV_4` + `CV_8`: Param 4
 - Params in...
-  - Reverb mode: `Time, Damping, DryLevel, SendLevel`
-  - Delay mode: `Time, Feedback, DryLevel, SendLevel`
-  - Pitch Shift mode: `LeftPitch, RightPitch, DryLevel, WetLevel`
+  - Reverb submode: `Time, Damping, DryLevel, SendLevel`
+  - Delay submode: `Time, Feedback, DryLevel, SendLevel`
+  - Pitch Shift submode: `LeftPitch, RightPitch, DryLevel, WetLevel`
   - Bitcrush mode: `BitDepth, CrushRate, DryLevel, WetLevel`
 - `audio R/L`: stereo audio input
-- `Button B7`: Switches between Effect Type
+- `Button B7 / SubMode`: Cycles through Effect Types
 
 **Outputs:**
 
@@ -155,7 +166,7 @@ This provides 2 audio-rate VCAs (stereo ins/outs) with CV control. And a unipola
 
 This is an envelope follower for the left input and an auto-ducker for the right input (ducking the envelope from the left). CV output is the envelope, with some parameters for attack/release and scaling.
 
-**Inputs:**a
+**Inputs:**
 
 - `CV_1`: MS attack (1 to 500ms)
 - `CV_2`: MS release (1 to 2000ms)
@@ -172,6 +183,7 @@ This is an envelope follower for the left input and an auto-ducker for the right
 
 **Unused:**
 
+- `Button B7`
 - `Toggle B8`
 - `CV_5` - `CV_8`
 - gate ins/outs
@@ -194,7 +206,7 @@ Simple ADSR Envelope. The audio outputs either apply it as a VCA (left) or "duck
 - `CV_4` + `CV_8`: Release time
 - `audio L`: audio input for follower
 - `audio R`: audio input to be ducked
-- `Button B7`: manual gate input
+- `Button B7`: manual gate
 - `Toggle B8`: when down, envelope is 1/2 size
 - `gate_in_1`: gate input
 
@@ -224,7 +236,7 @@ So from every chord, you have between 3 and 4 chords you can switch to depending
 - `CV_2` + `CV_6`: chord select X axis
 - `CV_3` + `CV_7`: Root offset (changes what "key" it thinks you're quantizing to)
 - `CV_4` + `CV_8`: chord select Y axis
-- `Button B7`: go to next chord page
+- `Button B7 / SubMode`: cycles through chord "page"
 - `Toggle B8`: when down, constantly re-quantize and ignore trigger
 - `gate_in_1`: trigger to re-quantize
 - `gate_in_2`: trigger to change chord page
@@ -243,11 +255,11 @@ So from every chord, you have between 3 and 4 chords you can switch to depending
 
 ### Mini Gatekeeper (Layer Only)
 
-This is a mini version of the Gatekeeper, that just splits the triggers 2/3 and 1/3 randomly. The two trigger ins are ANDed together before gatekeeping. Note: this isn't its own mode, but is layered on top of some other modes that had the gate ins/outs free.
+This is a mini version of the Gatekeeper, that just splits the triggers 2/3 and 1/3 randomly. The two trigger ins are ORed together before gatekeeping. Note: this isn't its own mode, but is layered on top of some other modes that had the gate ins/outs free.
 
 **Inputs:**
 
-- `game_in_1`: trigger/gate input
+- `gate_in_1`: trigger/gate input
 - `gate_in_2`: trigger/gate input
 
 **Outputs:**
@@ -273,9 +285,8 @@ This provides a simple envelope follower. Envelope params are preset with good "
 
 ### Other Plans for Future...
 
-- Granular Processor effect
+- Granular effect
 - CV Slew Limiter - basically do the Up/Down slewing that Maths does
-- Note generator - CV output for melodies
 - Drum w/ 4 trigger inputs and 2 CV inputs?
 
 ## Various Notes

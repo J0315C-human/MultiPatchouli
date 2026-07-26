@@ -13,15 +13,24 @@ extern DaisyPatchSM patch;
 static constexpr float CALIBRATE_VOCT = 0.9790673f;
 
 // Good "average" values to use for enveloper followers
-static constexpr float ENV_ATT        = 20.f;
-static constexpr float ENV_REL        = 90.f;
-static constexpr float ENV_SCALE      = 2.f;
+static constexpr float ENV_ATT   = 20.f;
+static constexpr float ENV_REL   = 90.f;
+static constexpr float ENV_SCALE = 2.f;
 
 inline float GetCombinedKnobCv(int knob, int cv)
 {
     float vK = patch.GetAdcValue(knob);
     float vC = patch.GetAdcValue(cv);
     return vK + (vC / 2);
+}
+
+inline uint8_t GetBinaryValueOfKnobs()
+{
+    float threshold = 0.5f;
+    return ((patch.GetAdcValue(CV_1) > threshold) ? 8 : 0)
+           + ((patch.GetAdcValue(CV_2) > threshold) ? 4 : 0)
+           + ((patch.GetAdcValue(CV_3) > threshold) ? 2 : 0)
+           + ((patch.GetAdcValue(CV_4) > threshold) ? 1 : 0);
 }
 
 inline uint16_t VoltageToCvValue(float input)

@@ -56,7 +56,9 @@ class Quantizer : public IModuleMode
                        AudioHandle::OutputBuffer out,
                        size_t                    size) override;
     void AdvanceChordPage();
-    void OnSubmodeButtonPress() override;
+    void OnSubModeButtonPress() override;
+    void SetSubMode(int subMode) override;
+    int  GetSubMode() override;
 
   private:
     float GetNearestNote(const Scale &scale, float note, int rootOffset);

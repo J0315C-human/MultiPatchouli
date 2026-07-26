@@ -33,7 +33,16 @@ void MultiFX::Init()
     delr.SetDelay(delay_current);
 }
 
-void MultiFX::OnSubmodeButtonPress()
+void MultiFX::SetSubMode(int subMode)
+{
+    settings.effectMode = subMode <= NUM_FX_MODES ? subMode : 0;
+    settings.shouldSave = true;
+}
+
+int MultiFX::GetSubMode()
+{ return settings.effectMode; }
+
+void MultiFX::OnSubModeButtonPress()
 {
     settings.superSawMode = (settings.superSawMode + 1) % NUM_FX_MODES;
     settings.shouldSave   = true;

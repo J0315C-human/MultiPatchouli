@@ -20,7 +20,9 @@ class MultiFX : public IModuleMode
                        size_t                    size) override;
     void GetDelaySample(float &outl, float &outr, float inl, float inr);
 
-    void OnSubmodeButtonPress() override;
+    void OnSubModeButtonPress() override;
+    void SetSubMode(int subMode) override;
+    int  GetSubMode() override;
 
   private:
     enum EffectMode

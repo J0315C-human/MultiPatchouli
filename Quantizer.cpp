@@ -97,8 +97,17 @@ void Quantizer::AdvanceChordPage()
     settings.shouldSave   = true;
 }
 
-void Quantizer::OnSubmodeButtonPress()
+void Quantizer::OnSubModeButtonPress()
 { AdvanceChordPage(); }
+
+void Quantizer::SetSubMode(int subMode)
+{
+    settings.quantizePage = subMode <= NUM_CHORD_PAGES ? subMode : 0;
+    settings.shouldSave   = true;
+}
+
+int Quantizer::GetSubMode()
+{ return settings.quantizePage; }
 
 float Quantizer::GetNearestNote(const Scale& scale, float note, int rootOffset)
 {
