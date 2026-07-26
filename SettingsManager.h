@@ -4,6 +4,7 @@
 #include "daisy_patch_sm.h"
 #include "daisysp.h"
 #include "fatfs.h"
+#include "Constants.h"
 
 #define FILE_NAME "settings.txt"
 

@@ -34,6 +34,10 @@ class MiniGateKeeper : public IModuleMode
         gateInOpen = newGateInOpen;
     }
 
+    void AudioCallback(AudioHandle::InputBuffer  in,
+                       AudioHandle::OutputBuffer out,
+                       size_t                    size) override
+    { return; }
 
   private:
     bool gateInOpen;

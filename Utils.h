@@ -2,20 +2,13 @@
 #include "daisy_patch_sm.h"
 #include "daisysp.h"
 #include "daisysp-lgpl.h"
+#include "Constants.h"
 
 using namespace daisy;
 using namespace daisysp;
 using namespace patch_sm;
 
 extern DaisyPatchSM patch;
-
-/* this was found with trial-and-error with my particular unit. */
-static constexpr float CALIBRATE_VOCT = 0.9790673f;
-
-// Good "average" values to use for enveloper followers
-static constexpr float ENV_ATT   = 20.f;
-static constexpr float ENV_REL   = 90.f;
-static constexpr float ENV_SCALE = 2.f;
 
 inline float GetCombinedKnobCv(int knob, int cv)
 {

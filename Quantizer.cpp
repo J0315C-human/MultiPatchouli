@@ -1,5 +1,6 @@
 #include "Quantizer.h"
 #include "SettingsManager.h"
+#include "Constants.h"
 
 extern DaisyPatchSM patch;
 extern Switch       toggle;

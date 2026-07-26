@@ -1,5 +1,6 @@
 #include "daisy_patch_sm.h"
 #include "daisysp.h"
+#include "Constants.h"
 #include "GateKeeper.h"
 #include "SuperSaw.h"
 #include "ADSREnv.h"
@@ -21,20 +22,6 @@ DaisyPatchSM patch;
 Switch       toggle;
 Switch       button7;
 Blinker      blinker;
-
-constexpr int NUM_MODES = 7;
-
-// MODE ORDER:
-enum GlobalMode
-{
-    SUPERSAW = 1,
-    MULTIFX,
-    VCAUTILITY,
-    ENVFOLLOWER,
-    ADSR,
-    QUANTIZER,
-    GATEKEEPER,
-};
 
 // mode instances
 GateKeeper  gateKeeper;
@@ -73,7 +60,7 @@ bool ModeHasMiniEnvFollower(int modeIdx)
 
 IModuleMode *GetModeInstance(int modeIdx)
 {
-    switch(settings.mode)
+    switch(modeIdx)
     {
         case GlobalMode::GATEKEEPER: return &gateKeeper;
         case GlobalMode::SUPERSAW: return &superSaw;
@@ -94,13 +81,14 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
 
     IModuleMode *modeInstance = GetModeInstance(settings.mode);
 
-    modeInstance->AudioCallback(in, out, size);
-
     if(ModeHasMiniEnvFollower(settings.mode))
         miniEnvFollower.AudioCallback(in, out, size);
 
     if(ModeHasMiniGatekeeper(settings.mode))
         miniGateKeeper.AudioCallback(in, out, size);
+
+    modeInstance->AudioCallback(in, out, size);
+
 }
 
 void MainDacCallback(uint16_t **output, size_t size)
@@ -138,18 +126,20 @@ void MainDacCallback(uint16_t **output, size_t size)
         settings.favoriteMode    = settings.mode;
         settings.favoriteSubMode = modeInstance->GetSubMode();
         settings.shouldSave      = true;
+        // show mode blinker to confirm
+        blinker.Trigger(settings.mode);
     }
 
     if(btnShortPress.ProcessAndCheckTrigger())
         modeInstance->OnSubModeButtonPress();
-
-    modeInstance->DacCallback(output, size);
 
     if(ModeHasMiniEnvFollower(settings.mode))
         miniEnvFollower.DacCallback(output, size);
 
     if(ModeHasMiniGatekeeper(settings.mode))
         miniGateKeeper.DacCallback(output, size);
+
+    modeInstance->DacCallback(output, size);
 
     // set LED and cv out value, giving "Blinker" higher priority
     for(size_t i = 0; i < size; i++)

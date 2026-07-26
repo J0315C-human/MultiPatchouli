@@ -31,9 +31,6 @@ class MiniEnvFollower : public IModuleMode
     {
         for(size_t i = 0; i < size; i++)
         {
-            OUT_L[i] = IN_L[i];
-            OUT_R[i] = IN_R[i];
-
             ef.Process(IN_L[i]);
         }
     }
