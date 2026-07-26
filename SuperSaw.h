@@ -19,11 +19,13 @@ class SuperSaw : public IModuleMode
                        size_t                    size) override;
     void UpdateWaveForm();
 
+    void OnSubmodeButtonPress() override;
+
   private:
     Oscillator osc_main, osc_a, osc_b, osc_c, osc_d, osc_e, osc_f, osc_g, osc_h;
-    int               n_extra_voices;
-    float             detune_incr;
-    float             scaleFactor;
-    float             loudnessFudge;
-    float             mid_freq;
+    int        n_extra_voices;
+    float      detune_incr;
+    float      scaleFactor;
+    float      loudnessFudge;
+    float      mid_freq;
 };

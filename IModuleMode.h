@@ -25,4 +25,5 @@ class IModuleMode
             out[1][i] = in[1][i];
         }
     }
+    virtual void OnSubmodeButtonPress() {};
 };

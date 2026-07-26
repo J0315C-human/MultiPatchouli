@@ -20,6 +20,7 @@ struct Settings
     int reserved5;
     int reserved6;
     int reserved7;
+    bool shouldSave;
 
     // default values
     Settings()
@@ -30,7 +31,8 @@ struct Settings
       reserved4(0),
       reserved5(0),
       reserved6(0),
-      reserved7(0)
+      reserved7(0),
+      shouldSave(false)
     {
     }
 };

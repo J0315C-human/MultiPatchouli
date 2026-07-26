@@ -6,7 +6,6 @@ extern Switch       toggle;
 extern uint16_t     CV_OUT_LOWPRIORITY;
 extern uint16_t     LED_OUT_LOWPRIORITY;
 extern Settings     settings;
-extern bool         shouldSave;
 
 static const Scale _SUS7    = Scale({0, 5, 2, 3});
 static const Scale _MAJOR   = Scale({0, 4, 3});
@@ -91,8 +90,15 @@ void Quantizer::Init()
     newNoteGate.Init(patch.AudioSampleRate());
     melodicDirectionGate.Init(patch.AudioSampleRate());
     samplesSinceLastNote = 0;
-    curChordPage         = settings.quantizePage;
 }
+void Quantizer::AdvanceChordPage()
+{
+    settings.quantizePage = (settings.quantizePage + 1) % NUM_CHORD_PAGES;
+    settings.shouldSave   = true;
+}
+
+void Quantizer::OnSubmodeButtonPress()
+{ AdvanceChordPage(); }
 
 float Quantizer::GetNearestNote(const Scale& scale, float note, int rootOffset)
 {
@@ -137,9 +143,7 @@ void Quantizer::DacCallback(uint16_t** output, size_t size)
 {
     if(GetNewChordPageTrigger())
     {
-        curChordPage          = (curChordPage + 1) % NUM_CHORD_PAGES;
-        settings.quantizePage = curChordPage;
-        shouldSave            = true;
+        AdvanceChordPage();
     }
 
     if((toggle.Pressed()
@@ -160,11 +164,13 @@ void Quantizer::DacCallback(uint16_t** output, size_t size)
         int scaleY = (int)fmap(scaleInputA, 0.f, (float)SCALE_Y_SIZE - 0.01f);
         int scaleX = (int)fmap(scaleInputB, 0.f, (float)SCALE_X_SIZE - 0.01f);
 
+        int page = settings.quantizePage;
+
         const Scale& scale
-            = curChordPage == 0   ? *CHORDS_A[scaleY * SCALE_X_SIZE + scaleX]
-              : curChordPage == 1 ? *CHORDS_B[scaleY * SCALE_X_SIZE + scaleX]
-              : curChordPage == 2 ? *CHORDS_C[scaleY * SCALE_X_SIZE + scaleX]
-                                  : *CHORDS_D[scaleY * SCALE_X_SIZE + scaleX];
+            = page == 0   ? *CHORDS_A[scaleY * SCALE_X_SIZE + scaleX]
+              : page == 1 ? *CHORDS_B[scaleY * SCALE_X_SIZE + scaleX]
+              : page == 2 ? *CHORDS_C[scaleY * SCALE_X_SIZE + scaleX]
+                          : *CHORDS_D[scaleY * SCALE_X_SIZE + scaleX];
 
 
         int rootOffset = (int)fmap(rootOffsetIn, -6.f, 6.f);

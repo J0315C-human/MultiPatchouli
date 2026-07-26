@@ -22,6 +22,13 @@ void SuperSaw::Init()
     UpdateWaveForm();
 }
 
+void SuperSaw::OnSubmodeButtonPress()
+{
+    settings.superSawMode = (settings.superSawMode + 1) % NUM_SUPERSAW_MODES;
+    settings.shouldSave   = true;
+    UpdateWaveForm();
+}
+
 void SuperSaw::UpdateWaveForm()
 {
     int newWF = 0;

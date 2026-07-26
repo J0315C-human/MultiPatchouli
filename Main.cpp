@@ -57,7 +57,6 @@ ButtonPressHelper btnLongPress;
 ButtonPressHelper btnShortPress;
 SettingsManager   settingsManager;
 Settings          settings;
-volatile bool     shouldSave;
 
 void MainAudioCallback(AudioHandle::InputBuffer  in,
                        AudioHandle::OutputBuffer out,
@@ -120,7 +119,7 @@ void MainDacCallback(uint16_t **output, size_t size)
     {
         settings.mode = (settings.mode + 1) % NUM_MODES;
         blinker.Trigger(settings.mode + 1);
-        shouldSave = true;
+        settings.shouldSave = true;
     }
 
     switch(settings.mode)
@@ -135,10 +134,7 @@ void MainDacCallback(uint16_t **output, size_t size)
             // short press: waveform
             if(btnShortPress.ProcessAndCheckTrigger())
             {
-                settings.superSawMode = (settings.superSawMode + 1)
-                                        % SuperSaw::NUM_SUPERSAW_MODES;
-                shouldSave            = true;
-                superSaw.UpdateWaveForm();
+                superSaw.OnSubmodeButtonPress();
             }
             miniEnvFollower.DacCallback(output, size);
             miniGateKeeper.DacCallback(output, size);
@@ -150,9 +146,7 @@ void MainDacCallback(uint16_t **output, size_t size)
             // short press: fx mode
             if(btnShortPress.ProcessAndCheckTrigger())
             {
-                settings.effectMode
-                    = (settings.effectMode + 1) % MultiFX::NUM_FX_MODES;
-                shouldSave = true;
+                multiFX.OnSubmodeButtonPress();
             }
             miniGateKeeper.DacCallback(output, size);
             multiFX.DacCallback(output, size);
@@ -174,10 +168,7 @@ void MainDacCallback(uint16_t **output, size_t size)
             // short press: next "chord page"
             if(btnShortPress.ProcessAndCheckTrigger())
             {
-                settings.quantizePage
-                    = (settings.quantizePage + 1) % Quantizer::NUM_CHORD_PAGES;
-                shouldSave             = true;
-                quantizer.curChordPage = settings.quantizePage;
+                quantizer.OnSubmodeButtonPress();
             }
 
             quantizer.DacCallback(output, size);
@@ -235,9 +226,9 @@ int main(void)
 
     while(1)
     {
-        if(shouldSave)
+        if(settings.shouldSave)
         {
-            shouldSave = false;
+            settings.shouldSave = false;
             settingsManager.Save(settings);
         }
     }

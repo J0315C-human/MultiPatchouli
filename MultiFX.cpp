@@ -33,6 +33,12 @@ void MultiFX::Init()
     delr.SetDelay(delay_current);
 }
 
+void MultiFX::OnSubmodeButtonPress()
+{
+    settings.superSawMode = (settings.superSawMode + 1) % NUM_FX_MODES;
+    settings.shouldSave   = true;
+}
+
 void MultiFX::DacCallback(uint16_t **output, size_t size)
 {
     /** Update Params with the four knobs */

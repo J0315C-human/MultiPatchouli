@@ -35,7 +35,6 @@ class Quantizer : public IModuleMode
     static constexpr int   NUM_CHORD_PAGES       = 4;
     static constexpr int   NOTE_DEBOUNCE_SAMPLES = 100;
     static constexpr float MAX_VOUT              = 5.f;
-    int                    curChordPage;
 
     enum
     {
@@ -56,6 +55,8 @@ class Quantizer : public IModuleMode
     void AudioCallback(AudioHandle::InputBuffer  in,
                        AudioHandle::OutputBuffer out,
                        size_t                    size) override;
+    void AdvanceChordPage();
+    void OnSubmodeButtonPress() override;
 
   private:
     float GetNearestNote(const Scale &scale, float note, int rootOffset);
