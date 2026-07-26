@@ -12,14 +12,14 @@ using namespace patch_sm;
 
 struct Settings
 {
-    int mode;
-    int effectMode;
-    int superSawMode;
-    int quantizePage;
-    int reserved4;
-    int reserved5;
-    int reserved6;
-    int reserved7;
+    int  mode;
+    int  effectMode;
+    int  superSawMode;
+    int  quantizePage;
+    int  reserved4;
+    int  reserved5;
+    int  reserved6;
+    int  reserved7;
     bool shouldSave;
 
     // default values

@@ -58,54 +58,45 @@ ButtonPressHelper btnShortPress;
 SettingsManager   settingsManager;
 Settings          settings;
 
+bool CurrentModeHasMiniGatekeeper()
+{
+    return settings.mode == GlobalMode::SUPERSAW
+           || settings.mode == GlobalMode::MULTIFX
+           || settings.mode == GlobalMode::VCAUTILITY;
+}
+
+bool CurrentModeHasMiniEnvFollower()
+{ return settings.mode == GlobalMode::SUPERSAW; }
+
+IModuleMode *GetCurrentModeInstance()
+{
+    switch(settings.mode)
+    {
+        case GlobalMode::GATEKEEPER: return &gateKeeper;
+        case GlobalMode::SUPERSAW: return &superSaw;
+        case GlobalMode::VCAUTILITY: return &vcaUtility;
+        case GlobalMode::ENVFOLLOWER: return &envFollower;
+        case GlobalMode::QUANTIZER: return &quantizer;
+        case GlobalMode::ADSR: return &adsrEnv;
+        default: return &multiFX;
+    }
+}
+
 void MainAudioCallback(AudioHandle::InputBuffer  in,
                        AudioHandle::OutputBuffer out,
                        size_t                    size)
 {
     patch.ProcessAllControls();
 
-    switch(settings.mode)
-    {
-        case GlobalMode::GATEKEEPER:
-        {
-            gateKeeper.AudioCallback(in, out, size);
-            break;
-        }
-        case GlobalMode::SUPERSAW:
-        {
-            miniEnvFollower.AudioCallback(in, out, size);
-            miniGateKeeper.AudioCallback(in, out, size);
-            superSaw.AudioCallback(in, out, size);
-            break;
-        }
-        case GlobalMode::MULTIFX:
-        {
-            miniGateKeeper.AudioCallback(in, out, size);
-            multiFX.AudioCallback(in, out, size);
-            break;
-        }
-        case GlobalMode::VCAUTILITY:
-        {
-            miniGateKeeper.AudioCallback(in, out, size);
-            vcaUtility.AudioCallback(in, out, size);
-            break;
-        }
-        case GlobalMode::ENVFOLLOWER:
-        {
-            envFollower.AudioCallback(in, out, size);
-            break;
-        }
-        case GlobalMode::QUANTIZER:
-        {
-            quantizer.AudioCallback(in, out, size);
-            break;
-        }
-        case GlobalMode::ADSR:
-        {
-            adsrEnv.AudioCallback(in, out, size);
-            break;
-        }
-    }
+    IModuleMode *modeInstance = GetCurrentModeInstance();
+
+    modeInstance->AudioCallback(in, out, size);
+
+    if(CurrentModeHasMiniEnvFollower())
+        miniEnvFollower.AudioCallback(in, out, size);
+
+    if(CurrentModeHasMiniGatekeeper())
+        miniGateKeeper.AudioCallback(in, out, size);
 }
 
 void MainDacCallback(uint16_t **output, size_t size)
@@ -122,64 +113,18 @@ void MainDacCallback(uint16_t **output, size_t size)
         settings.shouldSave = true;
     }
 
-    switch(settings.mode)
-    {
-        case GlobalMode::GATEKEEPER:
-        {
-            gateKeeper.DacCallback(output, size);
-            break;
-        }
-        case GlobalMode::SUPERSAW:
-        {
-            // short press: waveform
-            if(btnShortPress.ProcessAndCheckTrigger())
-            {
-                superSaw.OnSubmodeButtonPress();
-            }
-            miniEnvFollower.DacCallback(output, size);
-            miniGateKeeper.DacCallback(output, size);
-            superSaw.DacCallback(output, size);
-            break;
-        }
-        case GlobalMode::MULTIFX:
-        {
-            // short press: fx mode
-            if(btnShortPress.ProcessAndCheckTrigger())
-            {
-                multiFX.OnSubmodeButtonPress();
-            }
-            miniGateKeeper.DacCallback(output, size);
-            multiFX.DacCallback(output, size);
-            break;
-        }
-        case GlobalMode::VCAUTILITY:
-        {
-            miniGateKeeper.DacCallback(output, size);
-            vcaUtility.DacCallback(output, size);
-            break;
-        }
-        case GlobalMode::ENVFOLLOWER:
-        {
-            envFollower.DacCallback(output, size);
-            break;
-        }
-        case GlobalMode::QUANTIZER:
-        {
-            // short press: next "chord page"
-            if(btnShortPress.ProcessAndCheckTrigger())
-            {
-                quantizer.OnSubmodeButtonPress();
-            }
+    IModuleMode *modeInstance = GetCurrentModeInstance();
 
-            quantizer.DacCallback(output, size);
-            break;
-        }
-        case GlobalMode::ADSR:
-        {
-            adsrEnv.DacCallback(output, size);
-            break;
-        }
-    }
+    if(btnShortPress.ProcessAndCheckTrigger())
+        modeInstance->OnSubmodeButtonPress();
+
+    modeInstance->DacCallback(output, size);
+
+    if(CurrentModeHasMiniEnvFollower())
+        miniEnvFollower.DacCallback(output, size);
+
+    if(CurrentModeHasMiniGatekeeper())
+        miniGateKeeper.DacCallback(output, size);
 
     // set LED and cv out value, giving "Blinker" higher priority
     for(size_t i = 0; i < size; i++)
@@ -228,8 +173,8 @@ int main(void)
     {
         if(settings.shouldSave)
         {
-            settings.shouldSave = false;
             settingsManager.Save(settings);
+            settings.shouldSave = false;
         }
     }
 }
