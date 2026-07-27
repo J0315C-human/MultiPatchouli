@@ -11,6 +11,7 @@ MultiFX.cpp \
 VCAUtility.cpp \
 EnvFollower.cpp \
 ADSREnv.cpp \
+SlewLimiter.cpp \
 Quantizer.cpp
 
 # Library Locations

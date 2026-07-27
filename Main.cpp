@@ -13,6 +13,7 @@
 #include "MiniEnvFollower.h"
 #include "ButtonPressHelper.h"
 #include "SettingsManager.h"
+#include "SlewLimiter.h"
 
 using namespace daisy;
 using namespace patch_sm;
@@ -31,6 +32,7 @@ VCAUtility  vcaUtility;
 Quantizer   quantizer;
 EnvFollower envFollower;
 ADSREnv     adsrEnv;
+SlewLimiter slewLimiter;
 
 // "layered on top of" other modes:
 MiniGateKeeper  miniGateKeeper;
@@ -69,6 +71,7 @@ IModuleMode *GetModeInstance(int modeIdx)
         case GlobalMode::ENVFOLLOWER: return &envFollower;
         case GlobalMode::QUANTIZER: return &quantizer;
         case GlobalMode::ADSR: return &adsrEnv;
+        case GlobalMode::SLEWLIMITER: return &slewLimiter;
         case GlobalMode::MULTIFX: return &multiFX;
         default: return &multiFX;
     }

@@ -16,6 +16,7 @@ To change modes, while holding button B7, set the 4 knobs to a binary representa
 5. ADSR Envelope
 6. Quantizer
 7. GateKeeper
+8. SlewLimiter
 
 A knob value past 12 o'clock is treated as a 1. The knobs are greatest-to-lowest bit, from top left to bottom right. So for instance, to select mode 5, you'd set them "left-right-left-right", or 0101, which is 5 in binary.
 
@@ -250,6 +251,30 @@ So from every chord, you have between 3 and 4 chords you can switch to depending
 **Unused:**
 
 - audio ins/outs
+
+---
+
+### Slew Limiter
+
+CV Slew Limiter with basic rise/fall controls.
+
+**Inputs:**
+
+- `CV_2` + `CV_6`: Rise time
+- `CV_3` + `CV_7`: Fall time
+- `CV_5`: CV input to be slewed
+- `Toggle B8`: up is fast mode, down is slow mode. Just scales the rise/fall values
+
+**Outputs:**
+
+- `CV_OUT_1` and LED: slewed output
+
+**Unused:**
+
+- audio ins/outs
+- gate ins/outs
+- `CV_8`
+- `Button B7 / SubMode`
 
 ---
 
