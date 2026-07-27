@@ -260,9 +260,10 @@ CV Slew Limiter with basic rise/fall controls.
 
 **Inputs:**
 
-- `CV_2` + `CV_6`: Rise time
-- `CV_3` + `CV_7`: Fall time
+- `CV_1`: offset
 - `CV_5`: CV input to be slewed
+- `CV_2` + `CV_6`: Rise time
+- `CV_4` + `CV_8`: Fall time
 - `Toggle B8`: up is fast mode, down is slow mode. Just scales the rise/fall values
 
 **Outputs:**
@@ -273,7 +274,8 @@ CV Slew Limiter with basic rise/fall controls.
 
 - audio ins/outs
 - gate ins/outs
-- `CV_8`
+- `CV_3`
+- `CV_7`
 - `Button B7 / SubMode`
 
 ---

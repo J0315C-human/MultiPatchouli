@@ -26,22 +26,24 @@ void SlewLimiter::DacCallback(uint16_t **output, size_t size)
 {
     bool fastRange = toggle.Pressed();
 
+    target
+        = GetCombinedKnobCv(CV_1, CV_5, 0.25, 1); // weigh the knob less
     float knob_rise = GetCombinedKnobCv(CV_2, CV_6);
-    float riseTime  = fastRange ? fmap(knob_rise, 0.0001f, 0.1f, Mapping::EXP)
-                                : fmap(knob_rise, 0.01f, 10.f, Mapping::EXP);
+    float knob_fall = GetCombinedKnobCv(CV_4, CV_8);
 
-    float knob_fall = GetCombinedKnobCv(CV_3, CV_7);
-    float fallTime  = fastRange ? fmap(knob_fall, 0.0001f, 0.1f, Mapping::EXP)
-                                : fmap(knob_fall, 0.01f, 10.f, Mapping::EXP);
+    float riseTime = fastRange ? fmap(knob_rise, 0.0001f, 0.2f, Mapping::EXP)
+                               : fmap(knob_rise, 0.01f, 20.f, Mapping::EXP);
+
+    float fallTime = fastRange ? fmap(knob_fall, 0.0001f, 0.2f, Mapping::EXP)
+                               : fmap(knob_fall, 0.01f, 20.f, Mapping::EXP);
 
     float sr          = patch.AudioSampleRate();
     riseRatePerSample = (kSwing / (riseTime * sr));
     fallRatePerSample = (kSwing / (fallTime * sr));
 
-    target = patch.GetAdcValue(CV_5);
-
-    float outputVal = (lastOutput * MAX_VOUT) / CALIBRATE_VOCT;
-    float cvout     = VoltageToCvValue(outputVal);
+    float outputVal = (lastOutput * MAX_VOUT);
+    //  *CALIBRATE_VOCT;
+    float cvout = VoltageToCvValue(outputVal);
 
     CV_OUT_LOWPRIORITY = LED_OUT_LOWPRIORITY = cvout;
 }

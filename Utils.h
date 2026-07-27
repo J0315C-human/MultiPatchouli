@@ -10,11 +10,12 @@ using namespace patch_sm;
 
 extern DaisyPatchSM patch;
 
-inline float GetCombinedKnobCv(int knob, int cv)
+inline float
+GetCombinedKnobCv(int knob, int cv, float multKnob = 1, float multCv = 0.5f)
 {
     float vK = patch.GetAdcValue(knob);
     float vC = patch.GetAdcValue(cv);
-    return vK + (vC / 2);
+    return vK * multKnob + vC * multCv;
 }
 
 inline uint8_t GetBinaryValueOfKnobs()
