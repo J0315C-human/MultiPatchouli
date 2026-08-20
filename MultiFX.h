@@ -24,6 +24,8 @@ class MultiFX : public IModuleMode
     void SetSubMode(int subMode) override;
     int  GetSubMode() override;
 
+    void AttachReverb(ReverbSc *revb);
+
   private:
     enum EffectMode
     {
@@ -32,7 +34,7 @@ class MultiFX : public IModuleMode
         PitchShift,
         Crush
     };
-    ReverbSc     reverb;
+    ReverbSc    *reverb;
     PitchShifter pitchShifterL;
     PitchShifter pitchShifterR;
     Bitcrush     bitcrushL;

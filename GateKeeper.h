@@ -23,13 +23,16 @@ class GateKeeper : public IModuleMode
 
     void Init() override;
     void DacCallback(uint16_t **output, size_t size) override;
+    void AudioCallback(AudioHandle::InputBuffer  in,
+                       AudioHandle::OutputBuffer out,
+                       size_t                    size) override;
 
   private:
     int  triggerInCount;
     bool gateInOpen;
     bool lightState;
 
-    bool  GetRandomChanceByCV(int knob, int cv);
-    bool  ShouldTrigger_Cycled();
-    bool  GetCurrentGateInputState();
+    bool GetRandomChanceByCV(int knob, int cv);
+    bool ShouldTrigger_Cycled();
+    bool GetCurrentGateInputState();
 };

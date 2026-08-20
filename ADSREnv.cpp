@@ -19,10 +19,10 @@ void ADSREnv::DacCallback(uint16_t **output, size_t size)
     float param2    = GetCombinedKnobCv(CV_2, CV_6);
     float param3    = GetCombinedKnobCv(CV_3, CV_7);
     float param4    = GetCombinedKnobCv(CV_4, CV_8);
-    float attackMs  = fmap(param1, 1.f, 5000.f, Mapping::LOG);
-    float decayMs   = fmap(param2, 1.f, 5000.f, Mapping::LOG);
+    float attackMs  = fmap(param1, 10.f, 2500.f, Mapping::LOG);
+    float decayMs   = fmap(param2, 10.f, 2500.f, Mapping::LOG);
     float sustain   = fmap(param3, 0.f, 1.f);
-    float releaseMs = fmap(param4, 1.f, 8000.f, Mapping::LOG);
+    float releaseMs = fmap(param4, 10.f, 4000.f, Mapping::LOG);
     // toggle down gives a half-loudness envelope
     scaleMult = toggle.Pressed() ? 1.f : 0.5f;
 
@@ -68,9 +68,13 @@ void _ADSREnv::Init(float sampleRate)
 void _ADSREnv::Gate(bool high)
 {
     if(high && !gate)
+    {
         stage = Stage::Attack; // rising edge → restart
+    }
     else if(!high && gate)
+    {
         stage = Stage::Release; // falling edge → release
+    }
 
     gate = high;
 }

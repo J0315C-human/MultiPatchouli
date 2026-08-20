@@ -18,7 +18,6 @@ MultiFX::~MultiFX() {}
 
 void MultiFX::Init()
 {
-    reverb.Init(patch.AudioSampleRate());
     pitchShifterR.Init(patch.AudioSampleRate());
     pitchShifterL.Init(patch.AudioSampleRate());
     bitcrushL.Init(patch.AudioSampleRate());
@@ -33,6 +32,9 @@ void MultiFX::Init()
     dell.SetDelay(delay_current);
     delr.SetDelay(delay_current);
 }
+
+void MultiFX::AttachReverb(ReverbSc *revb)
+{ reverb = revb; }
 
 void MultiFX::SetSubMode(int subMode)
 {
@@ -69,8 +71,8 @@ void MultiFX::DacCallback(uint16_t **output, size_t size)
             float time = fmap(param1, 0.3f, 0.99f);
             float damp = fmap(param2, 1000.f, 19000.f, Mapping::LOG);
 
-            reverb.SetFeedback(DSY_CLAMP(time, 0.001f, 0.99f));
-            reverb.SetLpFreq(DSY_CLAMP(damp, 500.f, 22000.f));
+            reverb->SetFeedback(DSY_CLAMP(time, 0.001f, 0.99f));
+            reverb->SetLpFreq(DSY_CLAMP(damp, 500.f, 22000.f));
             break;
         }
         case EffectMode::Delay:
@@ -152,7 +154,7 @@ void MultiFX::AudioCallback(AudioHandle::InputBuffer  in,
                 // sends scaled by the send param
                 sendl *= send_level;
                 sendr *= send_level;
-                reverb.Process(sendl, sendr, &wetl, &wetr);
+                reverb->Process(sendl, sendr, &wetl, &wetr);
                 break;
             }
             case EffectMode::Delay:

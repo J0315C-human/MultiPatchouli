@@ -51,15 +51,9 @@ Logic to choose whether or not to "let" triggers through. Also provides a nice w
 - `CV_OUT_1`: combined triggers with AND or OR logic (all thru)
 - `LED`: On when gate is being let thru
 
-**Unused:**
+**Added layers:**
 
-- Audio ins and outs
-
-**Todo:**
-
-- Make audio out 1 duck audio based on the trigger and an envelope?
-- Apply same envelope to audio out 2, but only as a positive multiplier
-- OR, audio in/out could just be a basic reverb
+- Mini Reverb (see below)
 
 ---
 
@@ -182,16 +176,15 @@ This is an envelope follower for the left input and an auto-ducker for the right
 - `audio R`: audio R with ducking applied using the envelope of audio L
 - `CV_OUT_1`: follower envelope
 
+**Added layers:**
+
+- Mini GateKeeper (see below)
+
 **Unused:**
 
 - `Button B7`
 - `Toggle B8`
 - `CV_5` - `CV_8`
-- gate ins/outs
-
-**Todo:**
-
-- add Gate utilities (thresholds)
 
 ---
 
@@ -248,9 +241,9 @@ So from every chord, you have between 3 and 4 chords you can switch to depending
 - `gate_out_1`: trigger when note changes
 - `gate_out_2`: trigger when melody direction changes - ascending to descending or vice versa
 
-**Unused:**
+**Added layers:**
 
-- audio ins/outs
+- Mini Reverb (see below)
 
 ---
 
@@ -270,19 +263,26 @@ CV Slew Limiter with basic rise/fall controls.
 
 - `CV_OUT_1` and LED: slewed output
 
+**Added layers:**
+
+- Mini GateKeeper (see below)
+- Mini Reverb (see below)
+
 **Unused:**
 
-- audio ins/outs
-- gate ins/outs
 - `CV_3`
 - `CV_7`
 - `Button B7 / SubMode`
 
 ---
 
+## "Mini" Module Modes
+
+These are extra goodies that aren't their own modes, but are layered onto the main modules to make use of inputs/outputs unused by that module. For instance, the Quantizer has no audio function, so it has a Mini Reverb slapped onto it.
+
 ### Mini Gatekeeper (Layer Only)
 
-This is a mini version of the Gatekeeper, that just splits the triggers 2/3 and 1/3 randomly. The two trigger ins are ORed together before gatekeeping. Note: this isn't its own mode, but is layered on top of some other modes that had the gate ins/outs free.
+This is a mini version of the Gatekeeper that just splits the triggers 2/3 and 1/3 randomly. The two trigger ins are ORed together before gatekeeping. 
 
 **Inputs:**
 
@@ -306,14 +306,26 @@ This provides a simple envelope follower. Envelope params are preset with good "
 **Outputs:**
 
 - `CV_OUT_1`: follower envelope of audio L
-- `audio`: audio passthru (unless overridden by other module)
+- `audio`: audio passthru (unless overridden by current main module mode)
+
+### Mini Reverb (Layer Only)
+
+Just a simple reverb with preset middle-of-the-road levels.
+
+**Inputs:**
+
+- `audio L/R`: audio Inputs
+
+**Outputs:**
+
+- `audio L`: dry signal + reverb
+- `audio R`: fully wet reverb
 
 ---
 
 ### Other Plans for Future...
 
 - Granular effect
-- CV Slew Limiter - basically do the Up/Down slewing that Maths does
 - Drum w/ 4 trigger inputs and 2 CV inputs?
 
 ## Various Notes

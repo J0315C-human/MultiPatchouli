@@ -11,6 +11,7 @@
 #include "MiniGateKeeper.h"
 #include "Quantizer.h"
 #include "MiniEnvFollower.h"
+#include "MiniReverb.h"
 #include "ButtonPressHelper.h"
 #include "SettingsManager.h"
 #include "SlewLimiter.h"
@@ -23,6 +24,7 @@ DaisyPatchSM patch;
 Switch       toggle;
 Switch       button7;
 Blinker      blinker;
+ReverbSc     globalReverb; // to save buffer space this is shared between modes
 
 // mode instances
 GateKeeper  gateKeeper;
@@ -37,6 +39,7 @@ SlewLimiter slewLimiter;
 // "layered on top of" other modes:
 MiniGateKeeper  miniGateKeeper;
 MiniEnvFollower miniEnvFollower;
+MiniReverb      miniReverb;
 
 // vars to track CV values to output at DacCallback speed
 uint16_t LED_OUT_LOWPRIORITY;
@@ -55,11 +58,20 @@ volatile bool   shouldSave;
 bool ModeHasMiniGatekeeper(int modeIdx)
 {
     return modeIdx == GlobalMode::SUPERSAW || modeIdx == GlobalMode::MULTIFX
-           || modeIdx == GlobalMode::VCAUTILITY;
+           || modeIdx == GlobalMode::VCAUTILITY
+           || modeIdx == GlobalMode::ENVFOLLOWER
+           || modeIdx == GlobalMode::SLEWLIMITER;
 }
 
 bool ModeHasMiniEnvFollower(int modeIdx)
 { return modeIdx == GlobalMode::SUPERSAW; }
+
+bool ModeHasMiniReverb(int modeIdx)
+{
+    return modeIdx == GlobalMode::QUANTIZER || modeIdx == GlobalMode::GATEKEEPER
+           || modeIdx == GlobalMode::SLEWLIMITER;
+}
+
 
 IModuleMode *GetModeInstance(int modeIdx)
 {
@@ -90,6 +102,9 @@ void MainAudioCallback(AudioHandle::InputBuffer  in,
 
     if(ModeHasMiniGatekeeper(settings.mode))
         miniGateKeeper.AudioCallback(in, out, size);
+
+    if(ModeHasMiniReverb(settings.mode))
+        miniReverb.AudioCallback(in, out, size);
 
     modeInstance->AudioCallback(in, out, size);
 }
@@ -145,6 +160,9 @@ void MainDacCallback(uint16_t **output, size_t size)
     if(ModeHasMiniGatekeeper(settings.mode))
         miniGateKeeper.DacCallback(output, size);
 
+    if(ModeHasMiniReverb(settings.mode))
+        miniReverb.DacCallback(output, size);
+
     modeInstance->DacCallback(output, size);
 
     // set LED and cv out value, giving "Blinker" higher priority
@@ -182,6 +200,12 @@ int main(void)
     // Init mini mode layers
     miniGateKeeper.Init();
     miniEnvFollower.Init();
+    miniReverb.Init();
+
+    // wire up global reverb line
+    globalReverb.Init(patch.AudioSampleRate());
+    multiFX.AttachReverb(&globalReverb);
+    miniReverb.AttachReverb(&globalReverb);
 
     // start patch stuff
     patch.StartAudio(MainAudioCallback);

@@ -75,3 +75,9 @@ void GateKeeper::DacCallback(uint16_t **output, size_t size)
 
     gateInOpen = newGateInOpen;
 }
+
+void GateKeeper::AudioCallback(AudioHandle::InputBuffer  in,
+                               AudioHandle::OutputBuffer out,
+                               size_t                    size)
+{
+}
