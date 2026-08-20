@@ -10,10 +10,11 @@ enum GlobalMode
     ADSR,
     QUANTIZER,
     GATEKEEPER,
-    SLEWLIMITER
+    SLEWLIMITER,
+    SEQUENCER,
 };
 
-static constexpr int NUM_MODES = 8;
+static constexpr int NUM_MODES = 9;
 
 /* this was found with trial-and-error with my particular unit. */
 static constexpr float CALIBRATE_VOCT = 0.9790673f;

@@ -12,7 +12,8 @@ VCAUtility.cpp \
 EnvFollower.cpp \
 ADSREnv.cpp \
 SlewLimiter.cpp \
-Quantizer.cpp
+Quantizer.cpp \
+Sequencer.cpp
 
 # Library Locations
 LIBDAISY_DIR = ./libDaisy/

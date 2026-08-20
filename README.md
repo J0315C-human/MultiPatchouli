@@ -247,6 +247,35 @@ So from every chord, you have between 3 and 4 chords you can switch to depending
 
 ---
 
+### Sequencer
+
+A simple 4-value CV sequencer, trigger-controlled.
+
+**Inputs:**
+
+- `CV_1` + `CV_5`: Value 1 input
+- `CV_2` + `CV_6`: Value 2 input
+- `CV_3` + `CV_7`: Value 3 input
+- `CV_4` + `CV_8`: Value 4 input
+- `Toggle B8`: when down, ignores value 4 so it's a 3-value sequence
+- `gate_in_1`: trigger to advance to next value
+- `gate_in_2`: trigger to go back a value
+
+**Outputs:**
+
+- `CV_OUT_1` and LED: CV output
+
+**Added layers:**
+
+- Mini Reverb (see below)
+
+**Unused:**
+
+- `Button B7`
+- gate outputs
+
+---
+
 ### Slew Limiter
 
 CV Slew Limiter with basic rise/fall controls.

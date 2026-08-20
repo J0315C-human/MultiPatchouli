@@ -8,6 +8,7 @@
 #include "MultiFX.h"
 #include "VCAUtility.h"
 #include "EnvFollower.h"
+#include "Sequencer.h"
 #include "MiniGateKeeper.h"
 #include "Quantizer.h"
 #include "MiniEnvFollower.h"
@@ -35,6 +36,7 @@ Quantizer   quantizer;
 EnvFollower envFollower;
 ADSREnv     adsrEnv;
 SlewLimiter slewLimiter;
+Sequencer   sequencer;
 
 // "layered on top of" other modes:
 MiniGateKeeper  miniGateKeeper;
@@ -69,7 +71,8 @@ bool ModeHasMiniEnvFollower(int modeIdx)
 bool ModeHasMiniReverb(int modeIdx)
 {
     return modeIdx == GlobalMode::QUANTIZER || modeIdx == GlobalMode::GATEKEEPER
-           || modeIdx == GlobalMode::SLEWLIMITER;
+           || modeIdx == GlobalMode::SLEWLIMITER
+           || modeIdx == GlobalMode::SEQUENCER;
 }
 
 
@@ -84,6 +87,7 @@ IModuleMode *GetModeInstance(int modeIdx)
         case GlobalMode::QUANTIZER: return &quantizer;
         case GlobalMode::ADSR: return &adsrEnv;
         case GlobalMode::SLEWLIMITER: return &slewLimiter;
+        case GlobalMode::SEQUENCER: return &sequencer;
         case GlobalMode::MULTIFX: return &multiFX;
         default: return &multiFX;
     }
@@ -197,6 +201,7 @@ int main(void)
         IModuleMode *modeInstance = GetModeInstance(i);
         modeInstance->Init();
     }
+
     // Init mini mode layers
     miniGateKeeper.Init();
     miniEnvFollower.Init();
