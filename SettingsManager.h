@@ -19,7 +19,7 @@ struct Settings
     int quantizePage;
     int favoriteMode;
     int favoriteSubMode;
-    int reserved6;
+    int effectChainMode;
     int reserved7;
 
     // default values
@@ -30,7 +30,7 @@ struct Settings
       quantizePage(0),
       favoriteMode(1),
       favoriteSubMode(0),
-      reserved6(0),
+      effectChainMode(0),
       reserved7(0)
     {
     }
@@ -54,7 +54,7 @@ class SettingsManager
                  s.quantizePage,
                  s.favoriteMode,
                  s.favoriteSubMode,
-                 s.reserved6,
+                 s.effectChainMode,
                  s.reserved7);
     }
 
@@ -81,7 +81,7 @@ class SettingsManager
         out.quantizePage    = vals[3];
         out.favoriteMode    = vals[4];
         out.favoriteSubMode = vals[5];
-        out.reserved6       = vals[6];
+        out.effectChainMode = vals[6];
         out.reserved7       = vals[7];
 
         if(out.mode < 1 || out.mode > NUM_MODES)

@@ -25,12 +25,17 @@ DaisyPatchSM patch;
 Switch       toggle;
 Switch       button7;
 Blinker      blinker;
-ReverbSc     globalReverb; // to save buffer space this is shared between modes
+
+// to save buffer space these are shared between modes
+ReverbSc     globalReverb;
+PitchShifter globalPitchShifterL;
+PitchShifter globalPitchShifterR;
 
 // mode instances
 GateKeeper  gateKeeper;
 SuperSaw    superSaw;
 MultiFX     multiFX;
+MultiFX     fxChains;
 VCAUtility  vcaUtility;
 Quantizer   quantizer;
 EnvFollower envFollower;
@@ -60,6 +65,7 @@ volatile bool   shouldSave;
 bool ModeHasMiniGatekeeper(int modeIdx)
 {
     return modeIdx == GlobalMode::SUPERSAW || modeIdx == GlobalMode::MULTIFX
+           || modeIdx == GlobalMode::FXCHAINS
            || modeIdx == GlobalMode::VCAUTILITY
            || modeIdx == GlobalMode::ENVFOLLOWER
            || modeIdx == GlobalMode::SLEWLIMITER;
@@ -88,6 +94,7 @@ IModuleMode *GetModeInstance(int modeIdx)
         case GlobalMode::ADSR: return &adsrEnv;
         case GlobalMode::SLEWLIMITER: return &slewLimiter;
         case GlobalMode::SEQUENCER: return &sequencer;
+        case GlobalMode::FXCHAINS: return &fxChains;
         case GlobalMode::MULTIFX: return &multiFX;
         default: return &multiFX;
     }
@@ -202,14 +209,24 @@ int main(void)
         modeInstance->Init();
     }
 
+    // mode-specific setup
+    multiFX.SetEffectChainMode(false);
+    fxChains.SetEffectChainMode(true);
+
     // Init mini mode layers
     miniGateKeeper.Init();
     miniEnvFollower.Init();
     miniReverb.Init();
 
-    // wire up global reverb line
+    // wire up global effect dependencies
     globalReverb.Init(patch.AudioSampleRate());
-    multiFX.AttachReverb(&globalReverb);
+    globalPitchShifterL.Init(patch.AudioSampleRate());
+    globalPitchShifterR.Init(patch.AudioSampleRate());
+
+    multiFX.AttachEffectProcessors(
+        &globalReverb, &globalPitchShifterL, &globalPitchShifterR);
+    fxChains.AttachEffectProcessors(
+        &globalReverb, &globalPitchShifterL, &globalPitchShifterR);
     miniReverb.AttachReverb(&globalReverb);
 
     // start patch stuff

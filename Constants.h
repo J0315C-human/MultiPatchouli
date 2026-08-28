@@ -12,9 +12,10 @@ enum GlobalMode
     GATEKEEPER,
     SLEWLIMITER,
     SEQUENCER,
+    FXCHAINS,
 };
 
-static constexpr int NUM_MODES = 9;
+static constexpr int NUM_MODES = 10;
 
 /* this was found with trial-and-error with my particular unit. */
 static constexpr float CALIBRATE_VOCT = 0.9790673f;

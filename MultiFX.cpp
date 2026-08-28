@@ -18,8 +18,6 @@ MultiFX::~MultiFX() {}
 
 void MultiFX::Init()
 {
-    pitchShifterR.Init(patch.AudioSampleRate());
-    pitchShifterL.Init(patch.AudioSampleRate());
     bitcrushL.Init(patch.AudioSampleRate());
     bitcrushR.Init(patch.AudioSampleRate());
     ef.Init();
@@ -32,24 +30,48 @@ void MultiFX::Init()
     dell.SetDelay(delay_current);
     delr.SetDelay(delay_current);
 }
+void MultiFX::SetEffectChainMode(bool onOrOff)
+{ fxChainsOn = onOrOff; }
 
-void MultiFX::AttachReverb(ReverbSc *revb)
-{ reverb = revb; }
+void MultiFX::AttachEffectProcessors(ReverbSc     *revb,
+                                     PitchShifter *pitchL,
+                                     PitchShifter *pitchR)
+{
+    reverb        = revb;
+    pitchShifterR = pitchR;
+    pitchShifterL = pitchL;
+}
 
 void MultiFX::SetSubMode(int subMode)
 {
-    settings.effectMode = subMode <= NUM_FX_MODES ? subMode : 0;
-    shouldSave          = true;
+    if(fxChainsOn)
+    {
+        settings.effectChainMode = subMode <= NUM_CHAIN_MODES ? subMode : 0;
+    }
+    else
+    {
+        settings.effectMode = subMode <= NUM_FX_MODES ? subMode : 0;
+    }
+    shouldSave = true;
 }
 
 int MultiFX::GetSubMode()
-{ return settings.effectMode; }
+{ return fxChainsOn ? settings.effectChainMode : settings.effectMode; }
 
 void MultiFX::OnSubModeButtonPress()
 {
-    // advance to next effect
-    settings.effectMode = (settings.effectMode + 1) % NUM_FX_MODES;
-    shouldSave          = true;
+    if(fxChainsOn)
+    {
+        // advance to next chain
+        settings.effectChainMode
+            = (settings.effectChainMode + 1) % NUM_CHAIN_MODES;
+    }
+    else
+    {
+        // advance to next effect
+        settings.effectMode = (settings.effectMode + 1) % NUM_FX_MODES;
+    }
+    shouldSave = true;
 }
 
 void MultiFX::DacCallback(uint16_t **output, size_t size)
@@ -64,56 +86,42 @@ void MultiFX::DacCallback(uint16_t **output, size_t size)
     dry_level             = DSY_CLAMP(knob_dry_level, 0, 2);
     send_level            = DSY_CLAMP(knob_send_level, 0, 2);
 
-    switch(settings.effectMode)
+    // set reverb parameters
+    float time = fmap(param1, 0.3f, 0.99f);
+    float damp = fmap(param2, 1000.f, 19000.f, Mapping::LOG);
+
+    reverb->SetFeedback(DSY_CLAMP(time, 0.001f, 0.99f));
+    reverb->SetLpFreq(DSY_CLAMP(damp, 500.f, 22000.f));
+
+    // delay
+    delay_target
+        = fmap(param1, patch.AudioSampleRate() * 0.1f, MAX_DELAY, Mapping::LOG);
+    delay_feedback = DSY_CLAMP(param2, 0.f, 1.f);
+
+    // pitch shift
+    float shiftL = fmap(param1, -6.f, 26.f, Mapping::EXP);
+    float shiftR = fmap(param2, -6.f, 26.f, Mapping::EXP);
+
+    pitchShifterL->SetTransposition(shiftL);
+    pitchShifterR->SetTransposition(shiftR);
+
+    // bit crush
+    float bitDepth  = fmap(param1, 0, 16.99f);
+    float crushRate = fmap(param2, 100, 48000, Mapping::LOG);
+
+    float weirdOne = 1;
+    if(bitDepth > weirdOne && bitDepth <= weirdOne + 0.5f)
     {
-        case EffectMode::Reverb:
-        {
-            float time = fmap(param1, 0.3f, 0.99f);
-            float damp = fmap(param2, 1000.f, 19000.f, Mapping::LOG);
-
-            reverb->SetFeedback(DSY_CLAMP(time, 0.001f, 0.99f));
-            reverb->SetLpFreq(DSY_CLAMP(damp, 500.f, 22000.f));
-            break;
-        }
-        case EffectMode::Delay:
-        {
-            delay_target   = fmap(param1,
-                                  patch.AudioSampleRate() * 0.1f,
-                                  MAX_DELAY,
-                                  Mapping::LOG);
-            delay_feedback = DSY_CLAMP(param2, 0.f, 1.f);
-            break;
-        }
-        case EffectMode::PitchShift:
-        {
-            float shiftL = fmap(param1, -6.f, 26.f, Mapping::EXP);
-            float shiftR = fmap(param2, -6.f, 26.f, Mapping::EXP);
-
-            pitchShifterL.SetTransposition(shiftL);
-            pitchShifterR.SetTransposition(shiftR);
-            break;
-        }
-        case EffectMode::Crush:
-        {
-            float bitDepth  = fmap(param1, 0, 16.99f);
-            float crushRate = fmap(param2, 100, 48000, Mapping::LOG);
-
-            float weirdOne = 1;
-            if(bitDepth > weirdOne && bitDepth <= weirdOne + 0.5f)
-            {
-                bitDepth = weirdOne - 1.f;
-            }
-            else if(bitDepth > weirdOne + 0.5f && bitDepth < weirdOne + 1.f)
-            {
-                bitDepth = weirdOne + 1.f;
-            }
-            bitcrushL.SetBitDepth(bitDepth);
-            bitcrushL.SetCrushRate(crushRate);
-            bitcrushR.SetBitDepth(bitDepth);
-            bitcrushR.SetCrushRate(crushRate);
-            break;
-        }
+        bitDepth = weirdOne - 1.f;
     }
+    else if(bitDepth > weirdOne + 0.5f && bitDepth < weirdOne + 1.f)
+    {
+        bitDepth = weirdOne + 1.f;
+    }
+    bitcrushL.SetBitDepth(bitDepth);
+    bitcrushL.SetCrushRate(crushRate);
+    bitcrushR.SetBitDepth(bitDepth);
+    bitcrushR.SetCrushRate(crushRate);
 
     // set CV to follow envelope of full-wet effect (of just L channel)
     CV_OUT_LOWPRIORITY
@@ -147,41 +155,63 @@ void MultiFX::AudioCallback(AudioHandle::InputBuffer  in,
         float sendr = IN_R[i];
         float wetl = 0, wetr = 0;
 
-        switch(settings.effectMode)
+        if(fxChainsOn)
         {
-            case EffectMode::Reverb:
+            switch(settings.effectChainMode)
             {
-                // sends scaled by the send param
-                sendl *= send_level;
-                sendr *= send_level;
-                reverb->Process(sendl, sendr, &wetl, &wetr);
-                break;
-            }
-            case EffectMode::Delay:
-            {
-                // sends scaled by the send param
-                sendl *= send_level;
-                sendr *= send_level;
-                GetDelaySample(wetl, wetr, sendl, sendr);
-                break;
-            }
-            case EffectMode::PitchShift:
-            {
-                // sends 100%, but uses the send param to scale down the wet mix
+                default: // delay reverb
+                {
+                    // both sends scaled by the send param
+                    sendl *= send_level;
+                    sendr *= send_level;
+                    GetDelaySample(wetl, wetr, sendl, sendr);
 
-                wetl = pitchShifterL.Process(sendl) * send_level;
-                wetr = pitchShifterR.Process(sendr) * send_level;
-                break;
-            }
-            case EffectMode::Crush:
-            {
-                // sends 100%, but uses the send param to scale down the wet mix
+                    dryl = dryl + wetl;
+                    dryr = dryr + wetr;
 
-                wetl
-                    = cheapTanh((float)(bitcrushL.Process(sendl))) * send_level;
-                wetr
-                    = cheapTanh((float)(bitcrushR.Process(sendr))) * send_level;
-                break;
+                    reverb->Process(sendl, sendr, &wetl, &wetr);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            switch(settings.effectMode)
+            {
+                case EffectMode::Reverb:
+                {
+                    // sends scaled by the send param
+                    sendl *= send_level;
+                    sendr *= send_level;
+                    reverb->Process(sendl, sendr, &wetl, &wetr);
+                    break;
+                }
+                case EffectMode::Delay:
+                {
+                    // sends scaled by the send param
+                    sendl *= send_level;
+                    sendr *= send_level;
+                    GetDelaySample(wetl, wetr, sendl, sendr);
+                    break;
+                }
+                case EffectMode::PitchShift:
+                {
+                    // sends 100%, but uses the send param to scale down the wet mix
+
+                    wetl = pitchShifterL->Process(sendl) * send_level;
+                    wetr = pitchShifterR->Process(sendr) * send_level;
+                    break;
+                }
+                case EffectMode::Crush:
+                {
+                    // sends 100%, but uses the send param to scale down the wet mix
+
+                    wetl = cheapTanh((float)(bitcrushL.Process(sendl)))
+                           * send_level;
+                    wetr = cheapTanh((float)(bitcrushR.Process(sendr)))
+                           * send_level;
+                    break;
+                }
             }
         }
         OUT_L[i] = dryl + wetl;

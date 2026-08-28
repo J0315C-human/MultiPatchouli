@@ -6,7 +6,8 @@
 class MultiFX : public IModuleMode
 {
   public:
-    static constexpr int NUM_FX_MODES = 4;
+    static constexpr int NUM_FX_MODES    = 4;
+    static constexpr int NUM_CHAIN_MODES = 3;
 
     MultiFX();
     ~MultiFX();
@@ -24,7 +25,10 @@ class MultiFX : public IModuleMode
     void SetSubMode(int subMode) override;
     int  GetSubMode() override;
 
-    void AttachReverb(ReverbSc *revb);
+    void SetEffectChainMode(bool onOrOff);
+    void AttachEffectProcessors(ReverbSc     *revb,
+                                PitchShifter *pitchL,
+                                PitchShifter *pitchR);
 
   private:
     enum EffectMode
@@ -34,15 +38,23 @@ class MultiFX : public IModuleMode
         PitchShift,
         Crush
     };
-    ReverbSc    *reverb;
-    PitchShifter pitchShifterL;
-    PitchShifter pitchShifterR;
-    Bitcrush     bitcrushL;
-    Bitcrush     bitcrushR;
-    _EnvFollower ef;
-    float        dry_level;
-    float        send_level;
-    float        delay_current;
-    float        delay_target;
-    float        delay_feedback;
+    enum EffectChainMode
+    {
+        DelayReverb,
+        PitchShiftReverb,
+        DelayPitchShift,
+        CrushReverb
+    };
+    ReverbSc     *reverb;
+    PitchShifter *pitchShifterL;
+    PitchShifter *pitchShifterR;
+    Bitcrush      bitcrushL;
+    Bitcrush      bitcrushR;
+    _EnvFollower  ef;
+    bool          fxChainsOn;
+    float         dry_level;
+    float         send_level;
+    float         delay_current;
+    float         delay_target;
+    float         delay_feedback;
 };
