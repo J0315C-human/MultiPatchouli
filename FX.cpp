@@ -85,10 +85,10 @@ void FX::DacCallback(uint16_t **output, size_t size)
     if(dualModeOn)
     {
         // param 3 is effect balance (0: all first effect, >=1: all second effect)
-        dualEffectBalance = DSY_CLAMP(param3, 0, 1.5f);
+        dualEffectBalance = DSY_CLAMP(param3, 0, 1);
         // param 4 is dry/wet balance
         send_level = DSY_CLAMP(param4, 0, 1.5f);
-        dry_level  = 1.f - DSY_CLAMP(send_level, 0, 1.f);
+        dry_level  = 1.f - DSY_CLAMP(send_level, 0, 1);
     }
     else
     {
@@ -168,11 +168,9 @@ void FX::AudioCallback(AudioHandle::InputBuffer  in,
 
         if(dualModeOn)
         {
-            // both effect levels are proportional to the main send level
-            float lvl_B = dualEffectBalance * send_level * 1.5f;
-            float lvl_A
-                = (send_level - DSY_CLAMP(dualEffectBalance, 0, send_level))
-                  * 1.5f;
+            // both effect levels are proportional to the main send level, the last scalar is fudge
+            float lvl_B = dualEffectBalance * send_level * 1.3f;
+            float lvl_A = (1.f - dualEffectBalance) * send_level * 1.3f;
 
             // PROCESS EFFECT A
             switch(settings.dualEffectMode)
