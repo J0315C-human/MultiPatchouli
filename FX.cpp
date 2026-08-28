@@ -98,7 +98,7 @@ void FX::DacCallback(uint16_t **output, size_t size)
     }
 
     // set reverb parameters
-    float time = fmap(param1, 0.3f, 0.99f);
+    float time = fmap(param1, 0.45f, 0.99f);
     float damp = fmap(param2, 1000.f, 19000.f, Mapping::LOG);
 
     reverb->SetFeedback(DSY_CLAMP(time, 0.001f, 0.99f));
