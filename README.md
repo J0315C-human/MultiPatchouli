@@ -10,19 +10,21 @@ To change modes, while holding button B7, set the 4 knobs to a binary representa
 
 0. ["Favorite" slot]
 1. SuperSaw
-2. Multi FX
+2. Effect
 3. VCA Utility
 4. Envelope Follower
 5. ADSR Envelope
 6. Quantizer
 7. GateKeeper
 8. SlewLimiter
+9. Sequencer
+9. Dual Effect
 
 A knob value past 12 o'clock is treated as a 1. The knobs are greatest-to-lowest bit, from top left to bottom right. So for instance, to select mode 5, you'd set them "left-right-left-right", or 0101, which is 5 in binary.
 
 (Yeah I know, it's absurd, but we don't have a lot to work with interface-wise)
 
-To save a favorite (which just sets it as mode 0), press for 5+ seconds and release. After that point, selecting mode 0 will recall the saved mode. Some modes have submodes that are cycled by short-pressing the button; these are also recalled in mode 0, so you could favorite "Multi FX - BitCrusher" for instance.
+To save a favorite (which just sets it as mode 0), press for 5+ seconds and release. After that point, selecting mode 0 will recall the saved mode. Some modes have submodes that are cycled by short-pressing the button; these are also recalled in mode 0, so you could favorite "Effect - BitCrusher" for instance.
 
 When a mode starts, its submode is whatever was last used in that mode, with the exception of slot #0, which recalls the favorited setting.
 
@@ -87,7 +89,7 @@ SuperSaw voice with CV controls for number of extra voices, which goes from 2 up
 
 ---
 
-### Multi FX
+### Effect
 
 This is an effects mode with a basic Reverb, Delay, Pitch Shifter, and Bit Crusher.
 
@@ -102,6 +104,44 @@ This is an effects mode with a basic Reverb, Delay, Pitch Shifter, and Bit Crush
   - Delay submode: `Time, Feedback, DryLevel, SendLevel`
   - Pitch Shift submode: `LeftPitch, RightPitch, DryLevel, WetLevel`
   - Bitcrush mode: `BitDepth, CrushRate, DryLevel, WetLevel`
+- `audio R/L`: stereo audio input
+- `Button B7 / SubMode`: Cycles through Effect Types
+
+**Outputs:**
+
+- `audio R/L`: stereo audio output
+- `CV_OUT_1`: envelope follower of wet effect signal
+
+**Memory:**
+
+- Effect mode is saved to SD
+
+**Added layers:**
+
+- Mini GateKeeper (see below)
+
+**Unused:**
+
+- `Toggle B8`
+
+---
+
+### Dual Effect
+
+This has chains of 2 effects. Kinda wonky because params 1 and 2 are controlling multiple things at once. Fun to twiddle with, though.
+
+**Inputs:**
+
+- `CV_1` + `CV_5`: Param 1
+  - DelayReverb submode: `DelayTime, ReverbTime`
+  - PitchShiftReverb: `LeftPitch, ReverbTime`
+  - PitchShiftDelay: `LeftPitch, DelayTime`
+- `CV_2` + `CV_6`: Param 2
+  - DelayReverb submode: `DelayFeedback, ReverbDamping`
+  - PitchShiftReverb: `RightPitch, ReverbDamping`
+  - PitchShiftDelay: `RightPitch, DelayFeedback`
+- `CV_3` + `CV_7`: Effect A/B ratio
+- `CV_4` + `CV_8`: Dry/Wet ratio
 - `audio R/L`: stereo audio input
 - `Button B7 / SubMode`: Cycles through Effect Types
 
@@ -249,7 +289,7 @@ So from every chord, you have between 3 and 4 chords you can switch to depending
 
 ### Sequencer
 
-A simple 4-value CV sequencer, trigger-controlled.
+A simple 4-value CV sequencer, trigger-controlled. Values are continuously updated to CV_OUT_1, even when not triggered, which makes for interesting CV-routing ideas.
 
 **Inputs:**
 
@@ -257,7 +297,7 @@ A simple 4-value CV sequencer, trigger-controlled.
 - `CV_2` + `CV_6`: Value 2 input
 - `CV_3` + `CV_7`: Value 3 input
 - `CV_4` + `CV_8`: Value 4 input
-- `Toggle B8`: when down, ignores value 4 so it's a 3-value sequence
+- `Toggle B8`: when down, ignores value 4 to become a 3-value sequence
 - `gate_in_1`: trigger to advance to next value
 - `gate_in_2`: trigger to go back a value
 

@@ -4,7 +4,7 @@
 enum GlobalMode
 {
     SUPERSAW = 1,
-    MULTIFX,
+    EFFECT,
     VCAUTILITY,
     ENVFOLLOWER,
     ADSR,

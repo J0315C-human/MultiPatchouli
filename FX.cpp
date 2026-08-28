@@ -1,4 +1,4 @@
-#include "MultiFX.h"
+#include "FX.h"
 #include "SettingsManager.h"
 #include "daisysp-lgpl.h"
 
@@ -13,10 +13,10 @@ extern uint16_t     CV_OUT_LOWPRIORITY;
 static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS dell;
 static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delr;
 
-MultiFX::MultiFX() {}
-MultiFX::~MultiFX() {}
+FX::FX() {}
+FX::~FX() {}
 
-void MultiFX::Init()
+void FX::Init()
 {
     bitcrushL.Init(patch.AudioSampleRate());
     bitcrushR.Init(patch.AudioSampleRate());
@@ -30,23 +30,23 @@ void MultiFX::Init()
     dell.SetDelay(delay_current);
     delr.SetDelay(delay_current);
 }
-void MultiFX::SetEffectChainMode(bool onOrOff)
-{ fxChainsOn = onOrOff; }
+void FX::SetEffectChainMode(bool onOrOff)
+{ dualModeOn = onOrOff; }
 
-void MultiFX::AttachEffectProcessors(ReverbSc     *revb,
-                                     PitchShifter *pitchL,
-                                     PitchShifter *pitchR)
+void FX::AttachEffectProcessors(ReverbSc     *revb,
+                                PitchShifter *pitchL,
+                                PitchShifter *pitchR)
 {
     reverb        = revb;
     pitchShifterR = pitchR;
     pitchShifterL = pitchL;
 }
 
-void MultiFX::SetSubMode(int subMode)
+void FX::SetSubMode(int subMode)
 {
-    if(fxChainsOn)
+    if(dualModeOn)
     {
-        settings.effectChainMode = subMode <= NUM_CHAIN_MODES ? subMode : 0;
+        settings.dualEffectMode = subMode <= NUM_DUAL_MODES ? subMode : 0;
     }
     else
     {
@@ -55,16 +55,16 @@ void MultiFX::SetSubMode(int subMode)
     shouldSave = true;
 }
 
-int MultiFX::GetSubMode()
-{ return fxChainsOn ? settings.effectChainMode : settings.effectMode; }
+int FX::GetSubMode()
+{ return dualModeOn ? settings.dualEffectMode : settings.effectMode; }
 
-void MultiFX::OnSubModeButtonPress()
+void FX::OnSubModeButtonPress()
 {
-    if(fxChainsOn)
+    if(dualModeOn)
     {
         // advance to next chain
-        settings.effectChainMode
-            = (settings.effectChainMode + 1) % NUM_CHAIN_MODES;
+        settings.dualEffectMode
+            = (settings.dualEffectMode + 1) % NUM_DUAL_MODES;
     }
     else
     {
@@ -74,17 +74,28 @@ void MultiFX::OnSubModeButtonPress()
     shouldSave = true;
 }
 
-void MultiFX::DacCallback(uint16_t **output, size_t size)
+void FX::DacCallback(uint16_t **output, size_t size)
 {
-    /** Update Params with the four knobs */
     float param1 = GetCombinedKnobCv(CV_1, CV_5);
-
     float param2 = GetCombinedKnobCv(CV_2, CV_6);
 
-    float knob_dry_level  = GetCombinedKnobCv(CV_3, CV_7);
-    float knob_send_level = GetCombinedKnobCv(CV_4, CV_8);
-    dry_level             = DSY_CLAMP(knob_dry_level, 0, 2);
-    send_level            = DSY_CLAMP(knob_send_level, 0, 2);
+    float param3 = GetCombinedKnobCv(CV_3, CV_7);
+    float param4 = GetCombinedKnobCv(CV_4, CV_8);
+
+    if(dualModeOn)
+    {
+        // param 3 is effect balance (0: all first effect, >=1: all second effect)
+        dualEffectBalance = DSY_CLAMP(param3, 0, 1.5f);
+        // param 4 is dry/wet balance
+        send_level = DSY_CLAMP(param4, 0, 1.5f);
+        dry_level  = 1.f - DSY_CLAMP(send_level, 0, 1.f);
+    }
+    else
+    {
+        // param 3 is dry level, param 4 is send/wet level
+        dry_level  = DSY_CLAMP(param3, 0, 1.5f);
+        send_level = DSY_CLAMP(param4, 0, 1.5f);
+    }
 
     // set reverb parameters
     float time = fmap(param1, 0.3f, 0.99f);
@@ -128,7 +139,7 @@ void MultiFX::DacCallback(uint16_t **output, size_t size)
         = VoltageToCvValue(cheapTanh(ef.Value() * ENV_SCALE) * 5.f);
 }
 
-void MultiFX::GetDelaySample(float &outl, float &outr, float inl, float inr)
+void FX::GetDelaySample(float &outl, float &outr, float inl, float inr)
 {
     fonepole(delay_current, delay_target, .00007f);
     delr.SetDelay(delay_current);
@@ -143,9 +154,9 @@ void MultiFX::GetDelaySample(float &outl, float &outr, float inl, float inr)
     outr = (delay_feedback * outr) + ((1.0f - delay_feedback) * inr);
 }
 
-void MultiFX::AudioCallback(AudioHandle::InputBuffer  in,
-                            AudioHandle::OutputBuffer out,
-                            size_t                    size)
+void FX::AudioCallback(AudioHandle::InputBuffer  in,
+                       AudioHandle::OutputBuffer out,
+                       size_t                    size)
 {
     for(size_t i = 0; i < size; i++)
     {
@@ -155,21 +166,48 @@ void MultiFX::AudioCallback(AudioHandle::InputBuffer  in,
         float sendr = IN_R[i];
         float wetl = 0, wetr = 0;
 
-        if(fxChainsOn)
+        if(dualModeOn)
         {
-            switch(settings.effectChainMode)
+            // both effect levels are proportional to the main send level
+            float lvl_B = dualEffectBalance * send_level * 1.5f;
+            float lvl_A
+                = (send_level - DSY_CLAMP(dualEffectBalance, 0, send_level))
+                  * 1.5f;
+
+            // PROCESS EFFECT A
+            switch(settings.dualEffectMode)
             {
-                default: // delay reverb
+                case DualEffectMode::PitchShiftReverb:
+                case DualEffectMode::PitchShiftDelay:
                 {
-                    // both sends scaled by the send param
-                    sendl *= send_level;
-                    sendr *= send_level;
-                    GetDelaySample(wetl, wetr, sendl, sendr);
+                    wetl = pitchShifterL->Process(sendl) * lvl_A;
+                    wetr = pitchShifterR->Process(sendr) * lvl_A;
+                    break;
+                }
+                case DualEffectMode::DelayReverb:
+                {
+                    GetDelaySample(wetl, wetr, sendl * lvl_A, sendr * lvl_A);
+                    break;
+                }
+            }
+            // effectA output is effectB input
+            dryl += wetl;
+            dryr += wetr;
+            sendl = dryl;
+            sendr = dryr;
 
-                    dryl = dryl + wetl;
-                    dryr = dryr + wetr;
-
-                    reverb->Process(sendl, sendr, &wetl, &wetr);
+            // PROCESS EFFECT B
+            switch(settings.dualEffectMode)
+            {
+                case DualEffectMode::PitchShiftDelay:
+                {
+                    GetDelaySample(wetl, wetr, sendl * lvl_B, sendr * lvl_B);
+                    break;
+                }
+                case DualEffectMode::PitchShiftReverb:
+                case DualEffectMode::DelayReverb:
+                {
+                    reverb->Process(sendl * lvl_B, sendr * lvl_B, &wetl, &wetr);
                     break;
                 }
             }
@@ -180,32 +218,24 @@ void MultiFX::AudioCallback(AudioHandle::InputBuffer  in,
             {
                 case EffectMode::Reverb:
                 {
-                    // sends scaled by the send param
-                    sendl *= send_level;
-                    sendr *= send_level;
-                    reverb->Process(sendl, sendr, &wetl, &wetr);
+                    reverb->Process(
+                        sendl * send_level, sendr * send_level, &wetl, &wetr);
                     break;
                 }
                 case EffectMode::Delay:
                 {
-                    // sends scaled by the send param
-                    sendl *= send_level;
-                    sendr *= send_level;
-                    GetDelaySample(wetl, wetr, sendl, sendr);
+                    GetDelaySample(
+                        wetl, wetr, sendl * send_level, sendr * send_level);
                     break;
                 }
                 case EffectMode::PitchShift:
                 {
-                    // sends 100%, but uses the send param to scale down the wet mix
-
                     wetl = pitchShifterL->Process(sendl) * send_level;
                     wetr = pitchShifterR->Process(sendr) * send_level;
                     break;
                 }
                 case EffectMode::Crush:
                 {
-                    // sends 100%, but uses the send param to scale down the wet mix
-
                     wetl = cheapTanh((float)(bitcrushL.Process(sendl)))
                            * send_level;
                     wetr = cheapTanh((float)(bitcrushR.Process(sendr)))

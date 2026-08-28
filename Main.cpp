@@ -5,7 +5,7 @@
 #include "SuperSaw.h"
 #include "ADSREnv.h"
 #include "Blinker.h"
-#include "MultiFX.h"
+#include "FX.h"
 #include "VCAUtility.h"
 #include "EnvFollower.h"
 #include "Sequencer.h"
@@ -34,8 +34,8 @@ PitchShifter globalPitchShifterR;
 // mode instances
 GateKeeper  gateKeeper;
 SuperSaw    superSaw;
-MultiFX     multiFX;
-MultiFX     fxChains;
+FX          fx;
+FX          fxChains;
 VCAUtility  vcaUtility;
 Quantizer   quantizer;
 EnvFollower envFollower;
@@ -64,7 +64,7 @@ volatile bool   shouldSave;
 
 bool ModeHasMiniGatekeeper(int modeIdx)
 {
-    return modeIdx == GlobalMode::SUPERSAW || modeIdx == GlobalMode::MULTIFX
+    return modeIdx == GlobalMode::SUPERSAW || modeIdx == GlobalMode::EFFECT
            || modeIdx == GlobalMode::FXCHAINS
            || modeIdx == GlobalMode::VCAUTILITY
            || modeIdx == GlobalMode::ENVFOLLOWER
@@ -95,8 +95,8 @@ IModuleMode *GetModeInstance(int modeIdx)
         case GlobalMode::SLEWLIMITER: return &slewLimiter;
         case GlobalMode::SEQUENCER: return &sequencer;
         case GlobalMode::FXCHAINS: return &fxChains;
-        case GlobalMode::MULTIFX: return &multiFX;
-        default: return &multiFX;
+        case GlobalMode::EFFECT: return &fx;
+        default: return &fx;
     }
 }
 
@@ -210,7 +210,7 @@ int main(void)
     }
 
     // mode-specific setup
-    multiFX.SetEffectChainMode(false);
+    fx.SetEffectChainMode(false);
     fxChains.SetEffectChainMode(true);
 
     // Init mini mode layers
@@ -223,7 +223,7 @@ int main(void)
     globalPitchShifterL.Init(patch.AudioSampleRate());
     globalPitchShifterR.Init(patch.AudioSampleRate());
 
-    multiFX.AttachEffectProcessors(
+    fx.AttachEffectProcessors(
         &globalReverb, &globalPitchShifterL, &globalPitchShifterR);
     fxChains.AttachEffectProcessors(
         &globalReverb, &globalPitchShifterL, &globalPitchShifterR);

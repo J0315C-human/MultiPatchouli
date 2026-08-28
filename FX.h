@@ -3,14 +3,14 @@
 #include "EnvFollower.h"
 #include "Utils.h"
 
-class MultiFX : public IModuleMode
+class FX : public IModuleMode
 {
   public:
-    static constexpr int NUM_FX_MODES    = 4;
-    static constexpr int NUM_CHAIN_MODES = 3;
+    static constexpr int NUM_FX_MODES   = 4;
+    static constexpr int NUM_DUAL_MODES = 3;
 
-    MultiFX();
-    ~MultiFX();
+    FX();
+    ~FX();
 
     void Init() override;
 
@@ -38,12 +38,11 @@ class MultiFX : public IModuleMode
         PitchShift,
         Crush
     };
-    enum EffectChainMode
+    enum DualEffectMode
     {
         DelayReverb,
         PitchShiftReverb,
-        DelayPitchShift,
-        CrushReverb
+        PitchShiftDelay
     };
     ReverbSc     *reverb;
     PitchShifter *pitchShifterL;
@@ -51,7 +50,8 @@ class MultiFX : public IModuleMode
     Bitcrush      bitcrushL;
     Bitcrush      bitcrushR;
     _EnvFollower  ef;
-    bool          fxChainsOn;
+    bool          dualModeOn;
+    float         dualEffectBalance;
     float         dry_level;
     float         send_level;
     float         delay_current;

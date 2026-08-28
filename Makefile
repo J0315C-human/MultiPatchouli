@@ -7,7 +7,7 @@ USE_DAISYSP_LGPL = 1
 CPP_SOURCES = Main.cpp \
 GateKeeper.cpp \
 SuperSaw.cpp \
-MultiFX.cpp \
+FX.cpp \
 VCAUtility.cpp \
 EnvFollower.cpp \
 ADSREnv.cpp \
